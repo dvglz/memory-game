@@ -7,6 +7,7 @@ export interface Card {
   face: string;
   isFlipped: boolean;
   isMatched: boolean;
+  isJoker?: boolean;
 }
 
 export interface Player {
@@ -33,4 +34,5 @@ export interface GameState {
   showJerseyColors: boolean;
   timerConfig: number;
   flipDelayConfig: number;
+  jokerEnabled: boolean;
 }

@@ -15,6 +15,7 @@ interface GameStore extends GameState {
   setFlipDelayConfig: (ms: number) => void;
   setTheme: (theme: ThemeId) => void;
   toggleJerseyColors: () => void;
+  setJokerEnabled: (enabled: boolean) => void;
 }
 
 const shuffle = <T,>(array: T[]): T[] => {
@@ -46,11 +47,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
   showJerseyColors: true,
   timerConfig: GAME_CONFIG.timer,
   flipDelayConfig: GAME_CONFIG.flipDelay,
+  jokerEnabled: GAME_CONFIG.jokerEnabled,
 
   initGame: (mode, options = {}) => {
     const { isTiebreaker = false, pairs, columns } = options;
     const currentMode = mode || get().mode;
     const currentTheme = get().theme;
+    const jokerEnabled = get().jokerEnabled && !isTiebreaker;
     
     const config = isTiebreaker 
       ? GAME_CONFIG.tiebreaker 
@@ -60,12 +63,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
         };
 
     const themeItems = THEMES[currentTheme].items;
-    const selectedItems = shuffle(themeItems).slice(0, config.pairs);
+    const numPairs = jokerEnabled ? config.pairs - 1 : config.pairs;
+    const selectedItems = shuffle(themeItems).slice(0, numPairs);
     
-    const cards: Card[] = shuffle([
+    let cards: Card[] = [
       ...selectedItems.map((item, i) => ({ id: `card-${i}-a`, face: item, isFlipped: false, isMatched: false })),
       ...selectedItems.map((item, i) => ({ id: `card-${i}-b`, face: item, isFlipped: false, isMatched: false })),
-    ]);
+    ];
+
+    if (jokerEnabled) {
+      cards.push(
+        { id: 'joker-1', face: '💥', isFlipped: false, isMatched: false, isJoker: true },
+        { id: 'joker-2', face: '💥', isFlipped: false, isMatched: false, isJoker: true }
+      );
+    }
+
+    cards = shuffle(cards);
 
     set({
       mode: currentMode,
@@ -99,7 +112,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
       c.id === cardId ? { ...c, isFlipped: true } : c
     );
 
+    const flippedCard = newCards.find(c => c.id === cardId);
+
     set({ cards: newCards });
+
+    if (flippedCard?.isJoker) {
+      set({ isProcessing: true });
+      setTimeout(() => {
+        const resetCards = get().cards.map(c => 
+          (c.isFlipped && !c.isMatched) ? { ...c, isFlipped: false } : c
+        );
+        set({ 
+          cards: resetCards,
+          currentPlayerIndex: (get().currentPlayerIndex + 1) % 2,
+          isProcessing: false,
+          timer: get().timerConfig
+        });
+      }, state.flipDelayConfig);
+      return;
+    }
 
     const updatedFlippedCards = newCards.filter(c => c.isFlipped && !c.isMatched);
     
@@ -173,18 +204,27 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const state = get();
     // Use the current number of cards to determine if we are in tiebreaker or main
     const isTiebreaker = state.cards.length === (GAME_CONFIG.tiebreaker.pairs * 2);
-    const totalPairs = state.cards.length / 2;
+    const jokerCount = state.cards.filter(c => c.isJoker).length;
+    const totalPairs = (state.cards.length - jokerCount) / 2;
     const remainingPairs = totalPairs - state.matchedPairs;
     
     const p1 = state.players[0];
     const p2 = state.players[1];
 
     if (p1.score > (p2.score + remainingPairs)) {
-      set({ status: 'victoryLocked', winner: p1 });
+      set({ 
+        status: 'victoryLocked', 
+        winner: p1,
+        cards: state.cards.map(c => c.isJoker ? { ...c, isFlipped: true } : c)
+      });
       return;
     }
     if (p2.score > (p1.score + remainingPairs)) {
-      set({ status: 'victoryLocked', winner: p2 });
+      set({ 
+        status: 'victoryLocked', 
+        winner: p2,
+        cards: state.cards.map(c => c.isJoker ? { ...c, isFlipped: true } : c)
+      });
       return;
     }
 
@@ -194,7 +234,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       } else {
         set({ 
           status: 'gameOver', 
-          winner: p1.score > p2.score ? p1 : p2 
+          winner: p1.score > p2.score ? p1 : p2,
+          cards: state.cards.map(c => c.isJoker ? { ...c, isFlipped: true } : c)
         });
       }
     }
@@ -234,4 +275,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   toggleJerseyColors: () => set(state => ({ showJerseyColors: !state.showJerseyColors })),
+
+  setJokerEnabled: (enabled: boolean) => {
+    set({ jokerEnabled: enabled });
+    const state = get();
+    if (state.status !== 'idle') {
+      get().initGame();
+    }
+  },
 }));

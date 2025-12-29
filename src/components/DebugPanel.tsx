@@ -10,12 +10,14 @@ export const DebugPanel = () => {
     isPaused, 
     isPeeking, 
     showJerseyColors,
+    jokerEnabled,
     theme, 
     timerConfig,
     flipDelayConfig,
     togglePause, 
     peekCards, 
     toggleJerseyColors,
+    setJokerEnabled,
     setTimerConfig, 
     setFlipDelayConfig,
     setTheme, 
@@ -120,6 +122,27 @@ export const DebugPanel = () => {
             </div>
             <div className={`w-8 h-4 rounded-full relative transition-colors ${showJerseyColors ? 'bg-nba-red' : 'bg-zinc-700'}`}>
               <div className={`absolute top-1 w-2 h-2 bg-white rounded-full transition-all ${showJerseyColors ? 'right-1' : 'left-1'}`} />
+            </div>
+          </button>
+
+          <button
+            onClick={() => setJokerEnabled(!jokerEnabled)}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold transition-all border ${
+              jokerEnabled 
+                ? 'bg-nba-orange/10 border-nba-orange text-nba-orange' 
+                : 'bg-zinc-900 border-white/5 text-zinc-500'
+            }`}
+            title="Adds 2 trap cards. Flip one = skip your turn!"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-sm">💥</span>
+              <div className="flex flex-col items-start">
+                <span>Joker Mode</span>
+                <span className="text-[8px] opacity-60 font-normal">Adds 2 trap cards to the board</span>
+              </div>
+            </div>
+            <div className={`w-8 h-4 rounded-full relative transition-colors ${jokerEnabled ? 'bg-nba-orange' : 'bg-zinc-700'}`}>
+              <div className={`absolute top-1 w-2 h-2 bg-white rounded-full transition-all ${jokerEnabled ? 'right-1' : 'left-1'}`} />
             </div>
           </button>
         </div>

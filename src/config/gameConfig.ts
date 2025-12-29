@@ -34,6 +34,7 @@ export const GAME_CONFIG = {
   flipDelay: 1000, // ms
   victoryDelay: 2000, // ms
   peekDuration: 5000, // ms
+  jokerEnabled: false,
   assets: {
     back: '/assets/branding/clutch_minified.svg',
   }
