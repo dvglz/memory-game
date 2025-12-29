@@ -218,5 +218,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setFlipDelayConfig: (ms) => set({ flipDelayConfig: ms }),
 
-  setTheme: (theme) => set({ theme }),
+  setTheme: (theme) => {
+    const state = get();
+    set({ theme });
+    if (state.status !== 'idle') {
+      const currentPairs = state.cards.length / 2;
+      get().initGame(state.mode, { 
+        isTiebreaker: state.status === 'tiebreaker',
+        pairs: currentPairs > 0 ? currentPairs : undefined, 
+        columns: state.columns 
+      });
+    }
+  },
 }));
