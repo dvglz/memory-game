@@ -17,7 +17,7 @@ interface CardProps {
 export const Card = ({ card, onClick, isProcessing }: CardProps) => {
   return (
     <div 
-      className="relative w-full aspect-square cursor-pointer"
+      className="relative w-full aspect-[3/4] cursor-pointer"
       onClick={() => !card.isFlipped && !card.isMatched && !isProcessing && onClick()}
     >
       <motion.div

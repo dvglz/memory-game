@@ -6,7 +6,7 @@ import { VictoryOverlay } from './components/VictoryOverlay';
 import { Play } from 'lucide-react';
 
 function App() {
-  const { status, initGame, decrementTimer, matchedPairs } = useGameStore();
+  const { status, initGame, decrementTimer, matchedPairs, cards } = useGameStore();
 
   useEffect(() => {
     let interval: number;
@@ -79,7 +79,7 @@ function App() {
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-zinc-400 font-bold uppercase">Matched</span>
-                <span className="text-white font-black italic">{matchedPairs}/16</span>
+                <span className="text-white font-black italic">{matchedPairs}/{cards.length / 2}</span>
               </div>
             </div>
           </div>

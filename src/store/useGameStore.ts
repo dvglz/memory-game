@@ -32,6 +32,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   matchedPairs: 0,
   winner: null,
   mode: '1v1',
+  columns: GAME_CONFIG.main.columns,
 
   initGame: (mode, isTiebreaker = false) => {
     const config = isTiebreaker ? GAME_CONFIG.tiebreaker : GAME_CONFIG.main;
@@ -45,6 +46,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       mode,
       status: 'playing',
       cards,
+      columns: config.columns,
       matchedPairs: 0,
       isProcessing: false,
       timer: GAME_CONFIG.timer,

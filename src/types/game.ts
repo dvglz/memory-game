@@ -23,5 +23,6 @@ export interface GameState {
   matchedPairs: number;
   winner: Player | 'tie' | null;
   mode: '1v1' | 'solo';
+  columns: number;
 }
 
