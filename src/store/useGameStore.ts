@@ -1,13 +1,19 @@
 import { create } from 'zustand';
 import { GameState, Card, Player, GameStatus } from '../types/game';
-import { GAME_CONFIG, NBA_TEAMS } from '../config/gameConfig';
+import { GAME_CONFIG, THEMES, ThemeId } from '../config/gameConfig';
 
 interface GameStore extends GameState {
-  initGame: (mode: '1v1' | 'solo', isTiebreaker?: boolean) => void;
+  initGame: (mode?: '1v1' | 'solo', options?: { isTiebreaker?: boolean; pairs?: number; columns?: number }) => void;
   flipCard: (cardId: string) => void;
   resetTurn: () => void;
   decrementTimer: () => void;
   checkVictory: () => void;
+  // Debug Actions
+  togglePause: () => void;
+  peekCards: () => void;
+  setTimerConfig: (seconds: number) => void;
+  setFlipDelayConfig: (ms: number) => void;
+  setTheme: (theme: ThemeId) => void;
 }
 
 const shuffle = <T,>(array: T[]): T[] => {
@@ -33,27 +39,46 @@ export const useGameStore = create<GameStore>((set, get) => ({
   winner: null,
   mode: '1v1',
   columns: GAME_CONFIG.main.columns,
+  theme: 'nba_teams',
+  isPaused: false,
+  isPeeking: false,
+  timerConfig: GAME_CONFIG.timer,
+  flipDelayConfig: GAME_CONFIG.flipDelay,
 
-  initGame: (mode, isTiebreaker = false) => {
-    const config = isTiebreaker ? GAME_CONFIG.tiebreaker : GAME_CONFIG.main;
-    const selectedTeams = shuffle(NBA_TEAMS).slice(0, config.pairs);
+  initGame: (mode, options = {}) => {
+    const { isTiebreaker = false, pairs, columns } = options;
+    const currentMode = mode || get().mode;
+    const currentTheme = get().theme;
+    
+    const config = isTiebreaker 
+      ? GAME_CONFIG.tiebreaker 
+      : { 
+          pairs: pairs || GAME_CONFIG.main.pairs, 
+          columns: columns || GAME_CONFIG.main.columns 
+        };
+
+    const themeItems = THEMES[currentTheme].items;
+    const selectedItems = shuffle(themeItems).slice(0, config.pairs);
+    
     const cards: Card[] = shuffle([
-      ...selectedTeams.map((team, i) => ({ id: `card-${i}-a`, face: team, isFlipped: false, isMatched: false })),
-      ...selectedTeams.map((team, i) => ({ id: `card-${i}-b`, face: team, isFlipped: false, isMatched: false })),
+      ...selectedItems.map((item, i) => ({ id: `card-${i}-a`, face: item, isFlipped: false, isMatched: false })),
+      ...selectedItems.map((item, i) => ({ id: `card-${i}-b`, face: item, isFlipped: false, isMatched: false })),
     ]);
 
     set({
-      mode,
+      mode: currentMode,
       status: 'playing',
       cards,
       columns: config.columns,
       matchedPairs: 0,
       isProcessing: false,
-      timer: GAME_CONFIG.timer,
+      timer: get().timerConfig,
       currentPlayerIndex: 0,
       winner: null,
+      isPaused: false,
+      isPeeking: false,
       players: isTiebreaker 
-        ? get().players.map(p => ({ ...p, score: 0 })) // Reset for tiebreaker
+        ? get().players.map(p => ({ ...p, score: 0 }))
         : [
             { id: 1, name: 'Player 1', score: 0 },
             { id: 2, name: 'Player 2', score: 0 },
@@ -63,7 +88,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   flipCard: (cardId) => {
     const state = get();
-    if (state.isProcessing || state.status !== 'playing') return;
+    if (state.isProcessing || state.status !== 'playing' || state.isPaused || state.isPeeking) return;
 
     const flippedCards = state.cards.filter(c => c.isFlipped && !c.isMatched);
     if (flippedCards.length >= 2) return;
@@ -78,7 +103,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     
     if (updatedFlippedCards.length === 2) {
       set({ isProcessing: true });
-      setTimeout(() => get().resetTurn(), GAME_CONFIG.flipDelay);
+      setTimeout(() => get().resetTurn(), state.flipDelayConfig);
     }
   },
 
@@ -106,7 +131,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         players: newPlayers,
         matchedPairs: newMatchedPairs,
         isProcessing: false,
-        timer: GAME_CONFIG.timer, // Reset timer on match
+        timer: state.timerConfig,
       });
 
       get().checkVictory();
@@ -119,24 +144,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
         cards: newCards,
         currentPlayerIndex: (state.currentPlayerIndex + 1) % 2,
         isProcessing: false,
-        timer: GAME_CONFIG.timer,
+        timer: state.timerConfig,
       });
     }
   },
 
   decrementTimer: () => {
     const state = get();
-    if (state.status !== 'playing' || state.isProcessing) return;
+    if (state.status !== 'playing' || state.isProcessing || state.isPaused || state.isPeeking) return;
 
     if (state.timer <= 0) {
-      // Time's up - flip back open cards and pass turn
       const newCards = state.cards.map(c => 
         (!c.isMatched) ? { ...c, isFlipped: false } : c
       );
       set({
         cards: newCards,
         currentPlayerIndex: (state.currentPlayerIndex + 1) % 2,
-        timer: GAME_CONFIG.timer,
+        timer: state.timerConfig,
       });
     } else {
       set({ timer: state.timer - 1 });
@@ -145,13 +169,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   checkVictory: () => {
     const state = get();
-    const config = state.cards.length === 12 ? GAME_CONFIG.tiebreaker : GAME_CONFIG.main;
-    const remainingPairs = config.pairs - state.matchedPairs;
+    // Use the current number of cards to determine if we are in tiebreaker or main
+    const isTiebreaker = state.cards.length === (GAME_CONFIG.tiebreaker.pairs * 2);
+    const totalPairs = state.cards.length / 2;
+    const remainingPairs = totalPairs - state.matchedPairs;
     
     const p1 = state.players[0];
     const p2 = state.players[1];
 
-    // Victory Locked condition
     if (p1.score > (p2.score + remainingPairs)) {
       set({ status: 'victoryLocked', winner: p1 });
       return;
@@ -161,7 +186,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return;
     }
 
-    // Board cleared
     if (remainingPairs === 0) {
       if (p1.score === p2.score) {
         set({ status: 'tiebreaker' });
@@ -173,5 +197,26 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     }
   },
-}));
 
+  togglePause: () => set(state => ({ isPaused: !state.isPaused })),
+
+  peekCards: () => {
+    const state = get();
+    if (state.isPeeking || state.isProcessing) return;
+
+    const originalCards = [...state.cards];
+    const peekCards = state.cards.map(c => ({ ...c, isFlipped: true }));
+
+    set({ isPeeking: true, cards: peekCards });
+
+    setTimeout(() => {
+      set({ isPeeking: false, cards: originalCards });
+    }, GAME_CONFIG.peekDuration);
+  },
+
+  setTimerConfig: (seconds) => set({ timerConfig: seconds, timer: seconds }),
+
+  setFlipDelayConfig: (ms) => set({ flipDelayConfig: ms }),
+
+  setTheme: (theme) => set({ theme }),
+}));

@@ -1,3 +1,5 @@
+import { ThemeId } from "../config/gameConfig";
+
 export type GameStatus = 'idle' | 'playing' | 'checking' | 'victoryLocked' | 'tiebreaker' | 'gameOver';
 
 export interface Card {
@@ -24,5 +26,10 @@ export interface GameState {
   winner: Player | 'tie' | null;
   mode: '1v1' | 'solo';
   columns: number;
+  // Debug & Config
+  theme: ThemeId;
+  isPaused: boolean;
+  isPeeking: boolean;
+  timerConfig: number;
+  flipDelayConfig: number;
 }
-

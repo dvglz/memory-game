@@ -3,28 +3,42 @@ import { useGameStore } from './store/useGameStore';
 import { Board } from './components/Board';
 import { Scoreboard } from './components/Scoreboard';
 import { VictoryOverlay } from './components/VictoryOverlay';
+import { DebugPanel } from './components/DebugPanel';
+import { THEMES } from './config/gameConfig';
 import { Play } from 'lucide-react';
 
 function App() {
-  const { status, initGame, decrementTimer, matchedPairs, cards } = useGameStore();
+  const { 
+    status, 
+    initGame, 
+    decrementTimer, 
+    matchedPairs, 
+    cards, 
+    isPaused, 
+    isPeeking, 
+    theme 
+  } = useGameStore();
 
   useEffect(() => {
     let interval: number;
-    if (status === 'playing') {
+    if (status === 'playing' && !isPaused && !isPeeking) {
       interval = setInterval(() => {
         decrementTimer();
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [status, decrementTimer]);
+  }, [status, isPaused, isPeeking, decrementTimer]);
+
+  const currentTheme = THEMES[theme];
 
   if (status === 'idle') {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-[#0a0a0a] overflow-hidden p-8">
+        <DebugPanel />
         <div className="max-w-4xl w-full text-center space-y-12">
           <div className="space-y-4">
             <h1 className="text-[120px] font-black italic tracking-tighter leading-none uppercase text-white">
-              NBA <span className="text-nba-red">Memory</span> Match
+              {theme.split('_')[0].toUpperCase()} <span className="text-nba-red">Memory</span> Match
             </h1>
             <p className="text-zinc-500 font-bold uppercase tracking-[0.2em] text-xl">Official Clutch Creator MVP</p>
           </div>
@@ -55,6 +69,8 @@ function App() {
 
   return (
     <div className="h-screen w-full bg-[#0a0a0a] flex items-center justify-center p-8 overflow-hidden font-sans selection:bg-nba-red selection:text-white">
+      <DebugPanel />
+      
       {/* 16:9 Broadcast Container */}
       <div className="relative w-full max-w-[1920px] aspect-video flex gap-8 items-center justify-center">
         
@@ -75,11 +91,17 @@ function App() {
             <div className="space-y-3">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-zinc-400 font-bold uppercase">Game Status</span>
-                <span className="text-nba-orange font-black uppercase italic">{status}</span>
+                <span className="text-nba-orange font-black uppercase italic">
+                  {isPaused ? 'Paused' : isPeeking ? 'Peeking' : status}
+                </span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-zinc-400 font-bold uppercase">Matched</span>
                 <span className="text-white font-black italic">{matchedPairs}/{cards.length / 2}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-zinc-400 font-bold uppercase">Theme</span>
+                <span className="text-white font-black italic text-[10px]">{currentTheme.name}</span>
               </div>
             </div>
           </div>
@@ -98,4 +120,3 @@ function App() {
 }
 
 export default App;
-

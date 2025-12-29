@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Card as CardType } from '../types/game';
-import { GAME_CONFIG } from '../config/gameConfig';
+import { GAME_CONFIG, THEMES } from '../config/gameConfig';
+import { useGameStore } from '../store/useGameStore';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -15,6 +16,9 @@ interface CardProps {
 }
 
 export const Card = ({ card, onClick, isProcessing }: CardProps) => {
+  const theme = useGameStore((state) => state.theme);
+  const themePath = THEMES[theme].path;
+
   return (
     <div 
       className="relative w-full aspect-[3/4] cursor-pointer"
@@ -51,7 +55,7 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
           }}
         >
           <img 
-            src={`${GAME_CONFIG.assets.path}${card.face}.png`} 
+            src={`${themePath}${card.face}.png`} 
             alt={card.face} 
             className="w-full h-full object-contain"
           />
@@ -60,4 +64,3 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
     </div>
   );
 };
-
