@@ -9,11 +9,13 @@ export const DebugPanel = () => {
     status,
     isPaused, 
     isPeeking, 
+    showJerseyColors,
     theme, 
     timerConfig,
     flipDelayConfig,
     togglePause, 
     peekCards, 
+    toggleJerseyColors,
     setTimerConfig, 
     setFlipDelayConfig,
     setTheme, 
@@ -104,6 +106,22 @@ export const DebugPanel = () => {
               Peek (5s)
             </button>
           </div>
+          <button
+            onClick={toggleJerseyColors}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold transition-all border ${
+              showJerseyColors 
+                ? 'bg-nba-red/10 border-nba-red text-nba-red' 
+                : 'bg-zinc-900 border-white/5 text-zinc-500'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Layers className="w-3 h-3" />
+              <span>Jersey Colors</span>
+            </div>
+            <div className={`w-8 h-4 rounded-full relative transition-colors ${showJerseyColors ? 'bg-nba-red' : 'bg-zinc-700'}`}>
+              <div className={`absolute top-1 w-2 h-2 bg-white rounded-full transition-all ${showJerseyColors ? 'right-1' : 'left-1'}`} />
+            </div>
+          </button>
         </div>
 
         {/* Timer Config */}

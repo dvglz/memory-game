@@ -14,6 +14,7 @@ interface GameStore extends GameState {
   setTimerConfig: (seconds: number) => void;
   setFlipDelayConfig: (ms: number) => void;
   setTheme: (theme: ThemeId) => void;
+  toggleJerseyColors: () => void;
 }
 
 const shuffle = <T,>(array: T[]): T[] => {
@@ -42,6 +43,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   theme: 'nba_teams',
   isPaused: false,
   isPeeking: false,
+  showJerseyColors: true,
   timerConfig: GAME_CONFIG.timer,
   flipDelayConfig: GAME_CONFIG.flipDelay,
 
@@ -230,4 +232,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       });
     }
   },
+
+  toggleJerseyColors: () => set(state => ({ showJerseyColors: !state.showJerseyColors })),
 }));

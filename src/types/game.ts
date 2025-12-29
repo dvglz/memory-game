@@ -30,6 +30,7 @@ export interface GameState {
   theme: ThemeId;
   isPaused: boolean;
   isPeeking: boolean;
+  showJerseyColors: boolean;
   timerConfig: number;
   flipDelayConfig: number;
 }

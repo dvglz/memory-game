@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Card as CardType } from '../types/game';
 import { GAME_CONFIG, THEMES } from '../config/gameConfig';
+import { NBA_TEAMS, NFL_TEAMS } from '../data/teams';
 import { useGameStore } from '../store/useGameStore';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -16,8 +17,23 @@ interface CardProps {
 }
 
 export const Card = ({ card, onClick, isProcessing }: CardProps) => {
-  const theme = useGameStore((state) => state.theme);
+  const { theme, showJerseyColors } = useGameStore();
   const themePath = THEMES[theme].path;
+
+  // Get primary color if jersey colors are enabled
+  const getBackgroundColor = () => {
+    if (!showJerseyColors) return '#ffffff';
+    
+    const teamKey = card.face.split('_')[1];
+    if (theme === 'nba_teams') {
+      return NBA_TEAMS[teamKey]?.colors.primary || '#ffffff';
+    } else if (theme === 'nfl_teams') {
+      return NFL_TEAMS[teamKey]?.colors.primary || '#ffffff';
+    }
+    return '#ffffff';
+  };
+
+  const backgroundColor = getBackgroundColor();
 
   return (
     <div 
@@ -46,18 +62,19 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
         {/* Back (Face Up) */}
         <div 
           className={cn(
-            "absolute inset-0 w-full h-full backface-hidden rounded-lg border-2 flex items-center justify-center bg-white p-2",
+            "absolute inset-0 w-full h-full backface-hidden rounded-lg border-2 flex items-center justify-center p-2",
             card.isMatched ? "border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.5)]" : "border-white"
           )}
           style={{ 
             backfaceVisibility: 'hidden',
-            transform: 'rotateY(180deg)'
+            transform: 'rotateY(180deg)',
+            backgroundColor: backgroundColor
           }}
         >
           <img 
             src={`${themePath}${card.face}.png`} 
             alt={card.face} 
-            className="w-full h-full object-contain"
+            className="w-full h-full object-contain brightness-[1.1] drop-shadow-sm"
           />
         </div>
       </motion.div>
