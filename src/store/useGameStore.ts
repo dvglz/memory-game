@@ -204,8 +204,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   checkVictory: () => {
     const state = get();
-    // Use the current number of cards to determine if we are in tiebreaker or main
-    const _isTiebreaker = state.cards.length === (GAME_CONFIG.tiebreaker.pairs * 2);
     const jokerCount = state.cards.filter(c => c.isJoker).length;
     const totalPairs = (state.cards.length - jokerCount) / 2;
     const remainingPairs = totalPairs - state.matchedPairs;
