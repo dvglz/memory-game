@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { GameState, Card, Player, GameStatus } from '../types/game';
+import { GameState, Card } from '../types/game';
 import { GAME_CONFIG, THEMES, ThemeId } from '../config/gameConfig';
 
 interface GameStore extends GameState {
@@ -205,7 +205,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   checkVictory: () => {
     const state = get();
     // Use the current number of cards to determine if we are in tiebreaker or main
-    const isTiebreaker = state.cards.length === (GAME_CONFIG.tiebreaker.pairs * 2);
+    const _isTiebreaker = state.cards.length === (GAME_CONFIG.tiebreaker.pairs * 2);
     const jokerCount = state.cards.filter(c => c.isJoker).length;
     const totalPairs = (state.cards.length - jokerCount) / 2;
     const remainingPairs = totalPairs - state.matchedPairs;
