@@ -36,6 +36,8 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
     if (card.isJoker) return '#18181b'; // zinc-900
     if (!showJerseyColors) return '#ffffff';
     
+    if (theme === 'bron_mode') return '#552583'; // Lakers purple
+    
     const teamKey = card.face.split('_')[1];
     if (theme === 'nba_teams') {
       return NBA_TEAMS[teamKey]?.colors.primary || '#ffffff';
@@ -110,7 +112,8 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
         {/* Back (Face Up) */}
         <motion.div 
           className={cn(
-            "absolute inset-0 w-full h-full backface-hidden rounded-lg border-2 flex items-center justify-center p-2 overflow-hidden",
+            "absolute inset-0 w-full h-full backface-hidden rounded-lg border-2 flex items-center justify-center overflow-hidden",
+            theme !== 'bron_mode' && "p-2",
             card.isMatched ? "border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.5)]" : 
             card.isJoker ? "border-red-500" : "border-white"
           )}
@@ -151,9 +154,12 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
             </motion.div>
           ) : (
             <img 
-              src={`${themePath}${card.face}.png`} 
+              src={`${themePath}${card.face}.${theme === 'bron_mode' ? 'jpg' : 'png'}`} 
               alt={card.face} 
-              className="w-full h-full object-contain brightness-[1.1] drop-shadow-sm"
+              className={cn(
+                "w-full h-full brightness-[1.1] drop-shadow-sm",
+                theme === 'bron_mode' ? "object-cover" : "object-contain"
+              )}
             />
           )}
         </motion.div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useGameStore } from '../store/useGameStore';
 import { THEMES, PAIR_PRESETS, ThemeId } from '../config/gameConfig';
-import { Settings, X, Pause, Play, Eye, Timer, RefreshCw, Layers } from 'lucide-react';
+import { Settings, X, Pause, Play, Eye, Timer, RefreshCw, Layers, Crown } from 'lucide-react';
 
 export const DebugPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,6 +24,14 @@ export const DebugPanel = () => {
     setTheme, 
     initGame 
   } = useGameStore();
+
+  const isBronMode = theme === 'bron_mode';
+
+  const activateBronMode = () => {
+    setJokerEnabled(false);
+    setTheme('bron_mode');
+    initGame(undefined, { pairs: 12, columns: 6 });
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -55,7 +63,9 @@ export const DebugPanel = () => {
         <div className="space-y-2">
           <label className="text-[10px] font-bold uppercase tracking-tighter text-zinc-500">Game Theme</label>
           <div className="grid grid-cols-2 gap-2">
-            {(Object.keys(THEMES) as ThemeId[]).map((t) => (
+            {(Object.keys(THEMES) as ThemeId[])
+              .filter(t => t !== 'bron_mode')
+              .map((t) => (
               <button
                 key={t}
                 onClick={() => setTheme(t)}
@@ -71,6 +81,25 @@ export const DebugPanel = () => {
           </div>
         </div>
 
+        {/* Bron Mode Special */}
+        <button
+          onClick={activateBronMode}
+          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold transition-all border ${
+            isBronMode 
+              ? 'bg-purple-500/20 border-purple-500 text-purple-400' 
+              : 'bg-zinc-900 border-white/5 text-zinc-500 hover:bg-zinc-800'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <Crown className="w-4 h-4" />
+            <div className="flex flex-col items-start text-left">
+              <span>Bron Mode</span>
+              <span className="text-[8px] opacity-60 font-normal">12 pairs • No traps • Expressions</span>
+            </div>
+          </div>
+          {isBronMode && <span className="text-[9px] bg-purple-500 text-white px-2 py-0.5 rounded-full">ACTIVE</span>}
+        </button>
+
         {/* Game Config */}
         <div className="space-y-2">
           <label className="text-[10px] font-bold uppercase tracking-tighter text-zinc-500">Grid Presets (Main Game)</label>
@@ -79,7 +108,7 @@ export const DebugPanel = () => {
               <button
                 key={p.pairs}
                 onClick={() => initGame(undefined, { pairs: p.pairs, columns: p.columns })}
-                disabled={isTiebreaker}
+                disabled={isTiebreaker || isBronMode}
                 className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-300 rounded-lg text-xs font-bold transition-all flex flex-col items-center gap-1"
               >
                 <span>{p.pairs} Pairs</span>
@@ -129,12 +158,13 @@ export const DebugPanel = () => {
 
           <button
             onClick={() => setJokerEnabled(!jokerEnabled)}
+            disabled={isBronMode}
             className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold transition-all border ${
               jokerEnabled 
                 ? 'bg-nba-orange/10 border-nba-orange text-nba-orange' 
                 : 'bg-zinc-900 border-white/5 text-zinc-500'
-            }`}
-            title="Adds 2 trap cards. Flip one = skip your turn!"
+            } ${isBronMode ? 'opacity-30 cursor-not-allowed' : ''}`}
+            title={isBronMode ? "Not available in Bron Mode" : "Adds 2 trap cards. Flip one = skip your turn!"}
           >
             <div className="flex items-center gap-2">
               <span className="text-sm">💥</span>
