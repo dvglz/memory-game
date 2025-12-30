@@ -78,3 +78,4 @@ export const NFL_TEAMS: TeamsData = {
   WAS: { name: "Washington Commanders", colors: { primary: "#5A1414", secondary: "#FFB612" } },
 };
 
+

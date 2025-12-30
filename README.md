@@ -31,3 +31,4 @@ Press **\`** (backtick) to toggle the debug panel.
 
 React, TypeScript, Zustand, Framer Motion, Tailwind CSS, Vite
 
+
