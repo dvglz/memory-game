@@ -2,7 +2,7 @@ import { useGameStore } from '../store/useGameStore';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const Scoreboard = () => {
-  const { players, currentPlayerIndex, timer, status } = useGameStore();
+  const { players, currentPlayerIndex, timer, timerConfig, status } = useGameStore();
 
   return (
     <div className="flex flex-col gap-6 w-64">
@@ -28,7 +28,7 @@ export const Scoreboard = () => {
               {isActive && (
                 <motion.div 
                   initial={{ width: '100%' }}
-                  animate={{ width: `${(timer / 15) * 100}%` }}
+                  animate={{ width: `${(timer / timerConfig) * 100}%` }}
                   className="absolute bottom-0 left-0 h-1 bg-white"
                 />
               )}

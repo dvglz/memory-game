@@ -48,6 +48,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   timerConfig: GAME_CONFIG.timer,
   flipDelayConfig: GAME_CONFIG.flipDelay,
   jokerEnabled: GAME_CONFIG.jokerEnabled,
+  isTiebreaker: false,
 
   initGame: (mode, options = {}) => {
     const { isTiebreaker = false, pairs, columns } = options;
@@ -92,6 +93,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       winner: null,
       isPaused: false,
       isPeeking: false,
+      isTiebreaker,
       players: isTiebreaker 
         ? get().players.map(p => ({ ...p, score: 0 }))
         : [
@@ -253,7 +255,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ isPeeking: true, cards: peekCards });
 
     setTimeout(() => {
-      set({ isPeeking: false, cards: originalCards });
+      // Only restore if we are still peeking (i.e. game wasn't reset)
+      if (get().isPeeking) {
+        set({ isPeeking: false, cards: originalCards });
+      }
     }, GAME_CONFIG.peekDuration);
   },
 
@@ -267,7 +272,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (state.status !== 'idle') {
       const currentPairs = state.cards.length / 2;
       get().initGame(state.mode, { 
-        isTiebreaker: state.status === 'tiebreaker',
+        isTiebreaker: state.isTiebreaker,
         pairs: currentPairs > 0 ? currentPairs : undefined, 
         columns: state.columns 
       });
@@ -280,7 +285,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ jokerEnabled: enabled });
     const state = get();
     if (state.status !== 'idle') {
-      get().initGame();
+      get().initGame(undefined, { isTiebreaker: state.isTiebreaker });
     }
   },
 }));

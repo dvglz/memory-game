@@ -35,4 +35,5 @@ export interface GameState {
   timerConfig: number;
   flipDelayConfig: number;
   jokerEnabled: boolean;
+  isTiebreaker: boolean;
 }

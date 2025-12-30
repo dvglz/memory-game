@@ -14,6 +14,7 @@ export const DebugPanel = () => {
     theme, 
     timerConfig,
     flipDelayConfig,
+    isTiebreaker,
     togglePause, 
     peekCards, 
     toggleJerseyColors,
@@ -78,7 +79,8 @@ export const DebugPanel = () => {
               <button
                 key={p.pairs}
                 onClick={() => initGame(undefined, { pairs: p.pairs, columns: p.columns })}
-                className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-lg text-xs font-bold transition-all flex flex-col items-center gap-1"
+                disabled={isTiebreaker}
+                className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-300 rounded-lg text-xs font-bold transition-all flex flex-col items-center gap-1"
               >
                 <span>{p.pairs} Pairs</span>
                 <span className="text-[9px] opacity-50">{p.columns}x{p.pairs*2/p.columns}</span>

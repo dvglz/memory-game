@@ -29,7 +29,7 @@ export const PAIR_PRESETS = [
 
 export const GAME_CONFIG = {
   main: { pairs: 12, columns: 6 },
-  tiebreaker: { pairs: 6, columns: 3 },
+  tiebreaker: { pairs: 6, columns: 4 },
   timer: 15, // seconds
   flipDelay: 1000, // ms
   victoryDelay: 2000, // ms

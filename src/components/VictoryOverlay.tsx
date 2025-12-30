@@ -28,7 +28,7 @@ export const VictoryOverlay = () => {
               <h2 className="text-6xl font-black italic tracking-tighter mb-4 uppercase">Overtime!</h2>
               <p className="text-zinc-400 mb-8 text-lg">The board is clear but the score is tied. Entering a 6-pair sudden death grid.</p>
               <button 
-                onClick={() => initGame(mode, true)}
+                onClick={() => initGame(mode, { isTiebreaker: true })}
                 className="bg-white text-black px-12 py-4 rounded-full font-black uppercase tracking-widest hover:bg-nba-orange hover:text-white transition-colors flex items-center gap-2 mx-auto"
               >
                 Start Tiebreaker <RefreshCw className="w-5 h-5" />
