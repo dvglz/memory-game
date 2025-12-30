@@ -35,7 +35,7 @@ export const DebugPanel = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === '`') {
+      if (e.key === '/') {
         setIsOpen(prev => !prev);
       }
     };
@@ -234,7 +234,7 @@ export const DebugPanel = () => {
       </div>
 
       <div className="p-3 bg-black/40 text-[9px] text-center text-zinc-600 font-bold uppercase tracking-widest">
-        Press ` to toggle this menu
+        Press / to toggle this menu
       </div>
     </div>
   );
