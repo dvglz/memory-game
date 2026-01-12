@@ -1,6 +1,6 @@
 import { NBA_TEAMS, NFL_TEAMS } from '../data/teams';
 
-export type ThemeId = 'nba_teams' | 'nfl_teams' | 'bron_mode';
+export type ThemeId = 'nba-teams' | 'nfl-teams' | 'bron-mode';
 
 export interface ThemeConfig {
   name: string;
@@ -9,17 +9,17 @@ export interface ThemeConfig {
 }
 
 export const THEMES: Record<ThemeId, ThemeConfig> = {
-  nba_teams: {
+  'nba-teams': {
     name: 'NBA Teams',
     path: '/assets/teams_nba/',
     items: Object.keys(NBA_TEAMS).map((key) => `NBA_${key}`),
   },
-  nfl_teams: {
+  'nfl-teams': {
     name: 'NFL Teams',
     path: '/assets/teams_nfl/',
     items: Object.keys(NFL_TEAMS).map((key) => `NFL_${key}`),
   },
-  bron_mode: {
+  'bron-mode': {
     name: '👑 Bron Mode',
     path: '/assets/bron/',
     items: Array.from({ length: 12 }, (_, i) => `bron_${String(i + 1).padStart(2, '0')}`),
@@ -33,7 +33,7 @@ export const PAIR_PRESETS = [
 ] as const;
 
 export const GAME_CONFIG = {
-  main: { pairs: 12, columns: 6 },
+  main: { pairs: 10, columns: 5 },
   tiebreaker: { pairs: 6, columns: 4 },
   timer: 15, // seconds
   flipDelay: 1000, // ms

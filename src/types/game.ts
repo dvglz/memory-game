@@ -8,12 +8,21 @@ export interface Card {
   isFlipped: boolean;
   isMatched: boolean;
   isJoker?: boolean;
+  isBlind?: boolean;
 }
 
 export interface Player {
   id: number;
   name: string;
   score: number;
+  stats: {
+    blindShots: number;
+    maxStreak: number;
+    currentStreak: number;
+    totalMoves: number;
+    timeSpent: number;
+    trapHits: number;
+  };
 }
 
 export interface GameState {
@@ -26,7 +35,9 @@ export interface GameState {
   matchedPairs: number;
   winner: Player | 'tie' | null;
   mode: '1v1' | 'solo';
+  playerCount: number;
   columns: number;
+  revealedCardIds: Set<string>;
   // Debug & Config
   theme: ThemeId;
   isPaused: boolean;
@@ -36,4 +47,5 @@ export interface GameState {
   flipDelayConfig: number;
   jokerEnabled: boolean;
   isTiebreaker: boolean;
+  debugShowResults: boolean;
 }

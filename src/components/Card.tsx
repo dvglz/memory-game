@@ -6,6 +6,7 @@ import { useGameStore } from '../store/useGameStore';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useState, useEffect } from 'react';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -21,6 +22,7 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
   const { theme, showJerseyColors } = useGameStore();
   const themePath = THEMES[theme].path;
   const [showTrapEffect, setShowTrapEffect] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
   // Trigger trap effect when joker is revealed
   useEffect(() => {
@@ -36,12 +38,12 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
     if (card.isJoker) return '#18181b'; // zinc-900
     if (!showJerseyColors) return '#ffffff';
     
-    if (theme === 'bron_mode') return '#552583'; // Lakers purple
+    if (theme === 'bron-mode') return '#552583'; // Lakers purple
     
     const teamKey = card.face.split('_')[1];
-    if (theme === 'nba_teams') {
+    if (theme === 'nba-teams') {
       return NBA_TEAMS[teamKey]?.colors.primary || '#ffffff';
-    } else if (theme === 'nfl_teams') {
+    } else if (theme === 'nfl-teams') {
       return NFL_TEAMS[teamKey]?.colors.primary || '#ffffff';
     }
     return '#ffffff';
@@ -51,7 +53,10 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
 
   return (
     <div 
-      className="relative w-full aspect-[3/4] cursor-pointer"
+      className={cn(
+        "relative w-full cursor-pointer",
+        isMobile ? "aspect-[3/4]" : "aspect-[5/4]"
+      )}
       onClick={() => !card.isFlipped && !card.isMatched && !isProcessing && onClick()}
     >
       {/* Trap shockwave effect */}
@@ -99,21 +104,21 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
       >
         {/* Front (Hidden) */}
         <div 
-          className="absolute inset-0 w-full h-full backface-hidden rounded-lg border-2 border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden"
+          className="absolute inset-0 w-full h-full backface-hidden rounded-lg border-[1px] md:border-2 border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden"
           style={{ backfaceVisibility: 'hidden' }}
         >
           <img 
             src={GAME_CONFIG.assets.back} 
             alt="Clutch Branding" 
-            className="w-2/3 h-2/3 object-contain opacity-40"
+            className="w-1/2 h-1/2 object-contain opacity-40"
           />
         </div>
 
         {/* Back (Face Up) */}
         <motion.div 
           className={cn(
-            "absolute inset-0 w-full h-full backface-hidden rounded-lg border-2 flex items-center justify-center overflow-hidden",
-            theme !== 'bron_mode' && "p-2",
+            "absolute inset-0 w-full h-full backface-hidden rounded-lg border-[1px] md:border-2 flex items-center justify-center overflow-hidden",
+            theme !== 'bron-mode' && (isMobile ? "p-1" : "p-2"),
             card.isMatched ? "border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.5)]" : 
             card.isJoker ? "border-red-500" : "border-white"
           )}
@@ -154,11 +159,11 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
             </motion.div>
           ) : (
             <img 
-              src={`${themePath}${card.face}.${theme === 'bron_mode' ? 'jpg' : 'png'}`} 
+              src={`${themePath}${card.face}.${theme === 'bron-mode' ? 'jpg' : 'png'}`} 
               alt={card.face} 
               className={cn(
                 "w-full h-full brightness-[1.1] drop-shadow-sm",
-                theme === 'bron_mode' ? "object-cover" : "object-contain"
+                theme === 'bron-mode' ? "object-cover" : "object-contain"
               )}
             />
           )}

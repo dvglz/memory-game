@@ -1,35 +1,36 @@
 import { useState, useEffect } from 'react';
 import { useGameStore } from '../store/useGameStore';
-import { THEMES, PAIR_PRESETS, ThemeId } from '../config/gameConfig';
+import { THEMES, ThemeId } from '../config/gameConfig';
 import { Settings, X, Pause, Play, Eye, Timer, RefreshCw, Layers, Crown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const DebugPanel = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const { 
     status,
     isPaused, 
     isPeeking, 
-    showJerseyColors,
     jokerEnabled,
     theme, 
     timerConfig,
     flipDelayConfig,
-    isTiebreaker,
+    debugShowResults,
     togglePause, 
     peekCards, 
-    toggleJerseyColors,
+    toggleDebugResults,
     setJokerEnabled,
     setTimerConfig, 
     setFlipDelayConfig,
-    setTheme, 
-    initGame 
+    initGame,
+    debugTriggerEffect
   } = useGameStore();
 
-  const isBronMode = theme === 'bron_mode';
+  const isBronMode = theme === 'bron-mode';
 
   const activateBronMode = () => {
     setJokerEnabled(false);
-    setTheme('bron_mode');
+    navigate('/bron-mode');
     initGame(undefined, { pairs: 12, columns: 6 });
   };
 
@@ -64,11 +65,11 @@ export const DebugPanel = () => {
           <label className="text-[10px] font-bold uppercase tracking-tighter text-zinc-500">Game Theme</label>
           <div className="grid grid-cols-2 gap-2">
             {(Object.keys(THEMES) as ThemeId[])
-              .filter(t => t !== 'bron_mode')
+              .filter(t => t !== 'bron-mode')
               .map((t) => (
               <button
                 key={t}
-                onClick={() => setTheme(t)}
+                onClick={() => navigate(`/${t}`)}
                 className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
                   theme === t 
                     ? 'bg-nba-red text-white shadow-lg shadow-nba-red/20' 
@@ -100,24 +101,6 @@ export const DebugPanel = () => {
           {isBronMode && <span className="text-[9px] bg-purple-500 text-white px-2 py-0.5 rounded-full">ACTIVE</span>}
         </button>
 
-        {/* Game Config */}
-        <div className="space-y-2">
-          <label className="text-[10px] font-bold uppercase tracking-tighter text-zinc-500">Grid Presets (Main Game)</label>
-          <div className="grid grid-cols-3 gap-2">
-            {PAIR_PRESETS.map((p) => (
-              <button
-                key={p.pairs}
-                onClick={() => initGame(undefined, { pairs: p.pairs, columns: p.columns })}
-                disabled={isTiebreaker || isBronMode}
-                className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-300 rounded-lg text-xs font-bold transition-all flex flex-col items-center gap-1"
-              >
-                <span>{p.pairs} Pairs</span>
-                <span className="text-[9px] opacity-50">{p.columns}x{p.pairs*2/p.columns}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Controls */}
         <div className="space-y-2">
           <label className="text-[10px] font-bold uppercase tracking-tighter text-zinc-500">Live Controls</label>
@@ -138,23 +121,37 @@ export const DebugPanel = () => {
               <Eye className="w-3 h-3" />
               Peek (5s)
             </button>
+            <button
+              onClick={toggleDebugResults}
+              className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs font-bold transition-all border ${
+                debugShowResults 
+                  ? 'bg-nba-red border-nba-red text-white' 
+                  : 'bg-zinc-900 border-white/5 text-white hover:bg-zinc-800'
+              }`}
+            >
+              <Crown className="w-3 h-3" />
+              Results UI
+            </button>
           </div>
-          <button
-            onClick={toggleJerseyColors}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold transition-all border ${
-              showJerseyColors 
-                ? 'bg-nba-red/10 border-nba-red text-nba-red' 
-                : 'bg-zinc-900 border-white/5 text-zinc-500'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <Layers className="w-3 h-3" />
-              <span>Jersey Colors</span>
-            </div>
-            <div className={`w-8 h-4 rounded-full relative transition-colors ${showJerseyColors ? 'bg-nba-red' : 'bg-zinc-700'}`}>
-              <div className={`absolute top-1 w-2 h-2 bg-white rounded-full transition-all ${showJerseyColors ? 'right-1' : 'left-1'}`} />
-            </div>
-          </button>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => debugTriggerEffect('blind')}
+              disabled={status === 'idle'}
+              className="flex items-center justify-center gap-2 px-3 py-3 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition-all border border-white/5"
+            >
+              <span className="text-sm">😎</span>
+              Test Pog
+            </button>
+            <button
+              onClick={() => debugTriggerEffect('streak')}
+              disabled={status === 'idle'}
+              className="flex items-center justify-center gap-2 px-3 py-3 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition-all border border-white/5"
+            >
+              <span className="text-sm">🔥</span>
+              Test Fire
+            </button>
+          </div>
 
           <button
             onClick={() => setJokerEnabled(!jokerEnabled)}
