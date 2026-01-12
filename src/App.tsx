@@ -56,7 +56,6 @@ function GameContainer() {
             <div className="text-nba-red text-2xl md:text-5xl font-black italic uppercase tracking-tighter">
               {THEMES[theme].name}
             </div>
-            <p className="text-zinc-500 font-bold uppercase tracking-[0.2em] text-sm md:text-xl pt-4">Official Clutch Creator MVP</p>
           </div>
 
           <div className="flex justify-center">
@@ -75,7 +74,7 @@ function GameContainer() {
   }
 
   return (
-    <div className="h-screen w-full bg-[#0a0a0a] flex flex-col overflow-hidden font-sans selection:bg-nba-red selection:text-white">
+    <div className="h-dvh w-full bg-[#0a0a0a] flex flex-col overflow-hidden font-sans selection:bg-nba-red selection:text-white">
       <DebugPanel />
       <GameEffects />
       
