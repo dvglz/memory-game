@@ -36,3 +36,19 @@ body {
   }
 }
 
+@keyframes infiniteMove {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 100px 100px;
+  }
+}
+
+.animated-bg {
+  background-image: url('/assets/misc/bg-pattern.svg');
+  background-size: 100px;
+  background-repeat: repeat;
+  animation: infiniteMove 1s linear infinite;
+}
+

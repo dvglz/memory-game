@@ -82,6 +82,9 @@ function GameContainer() {
 
       {/* Game Area */}
       <div className="flex-1 flex p-2 md:p-6 lg:p-8 items-center justify-center min-h-0 relative">
+        {/* Animated background */}
+        <div className="absolute inset-0 animated-bg opacity-20 pointer-events-none" />
+        
         <Board />
         <VictoryOverlay />
       </div>

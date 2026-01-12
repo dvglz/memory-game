@@ -1,9 +1,69 @@
 import { useGameStore } from '../store/useGameStore';
 import { THEMES } from '../config/gameConfig';
 import { ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ThemeModal } from './ThemeModal';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+
+// Circular timer component (full circle, outside the timer text)
+const CircularTimer = ({ progress, size = 80, isReset }: { progress: number; size?: number; isReset: boolean }) => {
+  const strokeWidth = 4;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - progress);
+
+  return (
+    <svg width={size} height={size} className="absolute -rotate-90">
+      {/* Background circle (dark) */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="rgba(255,255,255,0.1)"
+        strokeWidth={strokeWidth}
+      />
+      {/* Progress circle (red) */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="#ef4444"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        style={{ transition: isReset ? 'stroke-dashoffset 150ms ease-out' : 'stroke-dashoffset 1000ms linear' }}
+      />
+    </svg>
+  );
+};
+
+// Score display with bounce animation
+const AnimatedScore = ({ score }: { score: number }) => {
+  const [isAnimating, setIsAnimating] = useState(false);
+  const prevScore = useRef(score);
+
+  useEffect(() => {
+    if (score !== prevScore.current) {
+      setIsAnimating(true);
+      prevScore.current = score;
+      const timeout = setTimeout(() => setIsAnimating(false), 300);
+      return () => clearTimeout(timeout);
+    }
+  }, [score]);
+
+  return (
+    <span 
+      className={`text-4xl md:text-6xl font-black italic text-white tabular-nums transition-transform duration-300 ${
+        isAnimating ? 'scale-125' : 'scale-100'
+      }`}
+    >
+      {score}
+    </span>
+  );
+};
 
 export const TopBar = () => {
   const { 
@@ -12,7 +72,8 @@ export const TopBar = () => {
     currentPlayerIndex, 
     status,
     players,
-    resetToIdle
+    resetToIdle,
+    timerConfig
   } = useGameStore();
   
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
@@ -22,9 +83,6 @@ export const TopBar = () => {
   const p1 = players[0];
   const p2 = players[1];
   const isPlaying = status === 'playing';
-
-  // Calculate progress for the timer bar (0 to 1)
-  const timerConfig = useGameStore.getState().timerConfig || 15;
   const timerProgress = timer / timerConfig;
 
   return (
@@ -47,70 +105,58 @@ export const TopBar = () => {
           )}
         </button>
 
-        {/* Center: P1 Score | Clock | P2 Score */}
-        <div className="flex items-center gap-3 md:gap-6 relative z-10">
-          {/* Player 1 Area */}
-          <div className={`flex flex-col items-center w-[80px] md:w-[120px] relative pb-1.5 pt-0.5 transition-all rounded-lg ${
-            isPlaying && currentPlayerIndex === 0 ? 'bg-white/10' : ''
-          }`}>
-            {/* Timer Line P1 */}
-            {isPlaying && currentPlayerIndex === 0 && (
-              <div 
-                className={`absolute bottom-0 right-0 h-0.5 bg-nba-red transition-all ease-linear rounded-bl-lg ${
-                  timer === timerConfig ? 'duration-150' : 'duration-1000'
-                }`}
-                style={{ width: `${timerProgress * 100}%` }}
-              />
-            )}
-            
-            <span className="text-[10px] md:text-xs text-zinc-500 font-black uppercase tracking-wider">P1</span>
-            <div className="flex items-center justify-center w-full relative h-6 md:h-8">
-              <span className="text-xl md:text-2xl font-black italic text-white tabular-nums">
-                {p1?.score ?? 0}
+        {/* Center: P1 Score | Timer Circle | P2 Score */}
+        <div className="flex items-center gap-2 md:gap-6 relative z-10">
+          {/* Player 1 Area - right aligned */}
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex flex-col items-end min-w-[60px] md:min-w-[100px]">
+              <span className={`text-[10px] md:text-xs font-black italic uppercase tracking-wider ${
+                isPlaying && currentPlayerIndex === 0 ? 'text-nba-red' : 'text-zinc-500'
+              }`}>
+                {isMobile ? 'P1' : 'PLAYER 1'}
               </span>
-              <div className="absolute right-1 md:right-2">
-                {isPlaying && currentPlayerIndex === 0 && (
-                  <span className="text-white text-sm md:text-lg animate-in fade-in slide-in-from-left-2">◀</span>
-                )}
-              </div>
+              <AnimatedScore score={p1?.score ?? 0} />
+            </div>
+            {/* Turn Arrow P1 */}
+            <div className="w-4 md:w-6 flex justify-center">
+              {isPlaying && currentPlayerIndex === 0 && (
+                <span className="text-nba-red text-lg md:text-2xl animate-pulse">◀</span>
+              )}
             </div>
           </div>
 
-          {/* Clock */}
-          <div className="flex flex-col items-center px-1">
-            <span 
-              className={`text-2xl md:text-4xl font-black italic tracking-tighter tabular-nums ${
-                timer <= 5 ? 'text-nba-red animate-pulse' : 'text-white'
-              }`}
-            >
-              {timer.toString().padStart(2, '0')}
-            </span>
+          {/* Circular Timer */}
+          <div className="relative flex items-center justify-center" style={{ width: isMobile ? 70 : 90, height: isMobile ? 70 : 90 }}>
+            <CircularTimer progress={timerProgress} size={isMobile ? 70 : 90} isReset={timer === timerConfig} />
+            <div className="flex flex-col items-center justify-center z-10">
+              <span 
+                className={`text-xl md:text-3xl font-black italic tracking-tighter tabular-nums leading-none ${
+                  timer <= 5 ? 'text-nba-red animate-pulse' : 'text-white'
+                }`}
+              >
+                :{timer.toString().padStart(2, '0')}
+              </span>
+              <span className="text-[8px] md:text-[10px] text-zinc-500 font-medium uppercase tracking-wider">
+                time left
+              </span>
+            </div>
           </div>
 
-          {/* Player 2 Area */}
-          <div className={`flex flex-col items-center w-[80px] md:w-[120px] relative pb-1.5 pt-0.5 transition-all rounded-lg ${
-            isPlaying && currentPlayerIndex === 1 ? 'bg-white/10' : ''
-          }`}>
-            {/* Timer Line P2 */}
-            {isPlaying && currentPlayerIndex === 1 && (
-              <div 
-                className={`absolute bottom-0 left-0 h-0.5 bg-nba-red transition-all ease-linear rounded-br-lg ${
-                  timer === timerConfig ? 'duration-150' : 'duration-1000'
-                }`}
-                style={{ width: `${timerProgress * 100}%` }}
-              />
-            )}
-
-            <span className="text-[10px] md:text-xs text-zinc-500 font-black uppercase tracking-wider">P2</span>
-            <div className="flex items-center justify-center w-full relative h-6 md:h-8">
-              <div className="absolute left-1 md:left-2">
-                {isPlaying && currentPlayerIndex === 1 && (
-                  <span className="text-white text-sm md:text-lg animate-in fade-in slide-in-from-right-2">▶</span>
-                )}
-              </div>
-              <span className="text-xl md:text-2xl font-black italic text-white tabular-nums">
-                {p2?.score ?? 0}
+          {/* Player 2 Area - left aligned */}
+          <div className="flex items-center gap-2 md:gap-4">
+            {/* Turn Arrow P2 */}
+            <div className="w-4 md:w-6 flex justify-center">
+              {isPlaying && currentPlayerIndex === 1 && (
+                <span className="text-nba-red text-lg md:text-2xl animate-pulse">▶</span>
+              )}
+            </div>
+            <div className="flex flex-col items-start min-w-[60px] md:min-w-[100px]">
+              <span className={`text-[10px] md:text-xs font-black italic uppercase tracking-wider ${
+                isPlaying && currentPlayerIndex === 1 ? 'text-nba-red' : 'text-zinc-500'
+              }`}>
+                {isMobile ? 'P2' : 'PLAYER 2'}
               </span>
+              <AnimatedScore score={p2?.score ?? 0} />
             </div>
           </div>
         </div>

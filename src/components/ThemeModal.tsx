@@ -11,7 +11,7 @@ interface ThemeModalProps {
 }
 
 export const ThemeModal = ({ isOpen, onClose }: ThemeModalProps) => {
-  const { theme, setTheme } = useGameStore();
+  const { theme } = useGameStore();
   const isMobile = useMediaQuery('(max-width: 767px)');
   const navigate = useNavigate();
 

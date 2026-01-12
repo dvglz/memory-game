@@ -22,7 +22,7 @@ export const Board = () => {
   // Desktop: TopBar ~80px + padding ~40px = ~120px offset
   return (
     <div 
-      className="grid gap-1.5 p-1.5 md:gap-2 md:p-4 bg-zinc-950/50 backdrop-blur-sm shadow-2xl"
+      className="grid gap-1.5 p-1.5 md:gap-2 md:p-4 shadow-2xl"
       style={{ 
         gridTemplateColumns: `repeat(${columns}, 1fr)`,
         width: isMobile 
