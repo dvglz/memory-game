@@ -15,15 +15,12 @@ export const DebugPanel = () => {
     theme, 
     timerConfig,
     flipDelayConfig,
-    debugShowResults,
     togglePause, 
     peekCards, 
-    toggleDebugResults,
     setJokerEnabled,
     setTimerConfig, 
     setFlipDelayConfig,
-    initGame,
-    debugTriggerEffect
+    initGame
   } = useGameStore();
 
   const isBronMode = theme === 'bron-mode';
@@ -47,7 +44,7 @@ export const DebugPanel = () => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-[100] w-80 bg-zinc-950/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden font-sans">
+    <div className="fixed top-24 right-4 z-[110] w-80 bg-zinc-950/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden font-sans">
       {/* Header */}
       <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
         <div className="flex items-center gap-2">
@@ -118,40 +115,10 @@ export const DebugPanel = () => {
             <button
               onClick={peekCards}
               disabled={status !== 'playing' || isPeeking}
-              className="flex items-center justify-center gap-2 px-3 py-3 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition-all border border-white/5"
+              className="flex items-center justify-center gap-2 px-3 py-3 w-full bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition-all border border-white/5"
             >
               <Eye className="w-3 h-3" />
               Peek (5s)
-            </button>
-            <button
-              onClick={toggleDebugResults}
-              className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs font-bold transition-all border ${
-                debugShowResults 
-                  ? 'bg-nba-red border-nba-red text-white' 
-                  : 'bg-zinc-900 border-white/5 text-white hover:bg-zinc-800'
-              }`}
-            >
-              <Crown className="w-3 h-3" />
-              Results UI
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => debugTriggerEffect('blind')}
-              disabled={status === 'idle'}
-              className="flex items-center justify-center gap-2 px-3 py-3 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition-all border border-white/5"
-            >
-              <span className="text-sm">😎</span>
-              Test Pog
-            </button>
-            <button
-              onClick={() => debugTriggerEffect('streak')}
-              disabled={status === 'idle'}
-              className="flex items-center justify-center gap-2 px-3 py-3 bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition-all border border-white/5"
-            >
-              <span className="text-sm">🔥</span>
-              Test Fire
             </button>
           </div>
 
