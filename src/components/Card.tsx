@@ -139,8 +139,8 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
         >
           <img 
             src={GAME_CONFIG.assets.back} 
-            alt="Clutch Branding" 
-            className="w-1/2 h-1/2 object-contain opacity-40 pointer-events-none"
+            alt="Miss Match Logo" 
+            className="w-1/2 h-1/2 object-contain opacity-20 pointer-events-none"
           />
         </div>
 

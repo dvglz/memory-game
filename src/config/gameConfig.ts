@@ -54,6 +54,6 @@ export const GAME_CONFIG = {
   peekDuration: 5000, // ms
   jokerEnabled: false,
   assets: {
-    back: '/assets/branding/clutch_minified.svg',
+    back: '/assets/misc/miss-match-logo_min.svg',
   }
 };

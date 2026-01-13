@@ -87,21 +87,23 @@ export const TopBar = () => {
 
   return (
     <>
-      <div className="w-full flex items-center justify-between px-3 md:px-6 py-1.5 md:py-2 bg-zinc-950/50 backdrop-blur-md border-b border-white/5 flex-shrink-0 z-[100] relative">
+      <div className="w-full flex items-center justify-between px-3 md:px-6 h-[72px] md:h-[96px] bg-zinc-950/50 backdrop-blur-md border-b border-white/5 flex-shrink-0 z-[100] relative">
         {/* Left: Logo */}
         <button 
           onClick={resetToIdle}
           className="flex items-center gap-2 group flex-shrink-0 z-10"
         >
-          <div className="w-8 h-8 md:w-10 md:h-10 bg-nba-red rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.3)] group-hover:scale-105 transition-transform">
-            <span className="text-white font-black italic text-lg md:text-xl">M</span>
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-nba-red rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.3)] group-hover:scale-105 transition-transform overflow-hidden">
+            <img 
+              src="/assets/misc/miss-match-logo_min.svg" 
+              alt="Miss Match" 
+              className="w-5 h-5 md:w-6 md:h-6"
+            />
           </div>
           {!isMobile && (
-            <div className="flex flex-col items-start leading-none">
-              <span className="text-white font-black italic text-sm uppercase tracking-tighter">
-                Miss Match
-              </span>
-            </div>
+            <span className="text-zinc-500 font-bold text-xs uppercase tracking-wide">
+              Miss Match
+            </span>
           )}
         </button>
 
