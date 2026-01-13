@@ -13,7 +13,6 @@ export const VictoryOverlay = () => {
 
   const winnerData = typeof winner === 'object' ? winner : null;
   const isFlawless = winnerData && players.every(p => p.id === winnerData.id || p.score === 0);
-  const isAce = status === 'victoryLocked';
   const isTie = status === 'tiebreaker';
 
   const getVictoryTitle = () => {

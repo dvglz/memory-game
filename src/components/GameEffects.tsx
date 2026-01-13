@@ -28,14 +28,14 @@ export const GameEffects = () => {
       
       if (prev) {
         // 1. Blind shot emission (pogchamp.png) - EXPLOSION!
-        if (player.stats.blindShots > prev.blindShots) {
+        /* if (player.stats.blindShots > prev.blindShots) {
           emitPogBurst(player.id);
-        }
+        } */
         
         // 2. Streak emission (fire emoji) - FLAMES RISING!
-        if (player.stats.currentStreak > prev.currentStreak && player.stats.currentStreak > 1) {
+        /* if (player.stats.currentStreak > prev.currentStreak && player.stats.currentStreak > 1) {
           emitFireBurst(player.id, player.stats.currentStreak);
-        }
+        } */
       }
 
       // Update ref for next render
@@ -46,7 +46,7 @@ export const GameEffects = () => {
     });
   }, [players]);
 
-  // POG BURST - Explosive radial burst pattern
+  /* // POG BURST - Explosive radial burst pattern
   const emitPogBurst = (playerId: number) => {
     const count = 10;
     const isP1 = playerId === 1;
@@ -110,7 +110,7 @@ export const GameEffects = () => {
     setTimeout(() => {
       setParticles((prev) => prev.filter((p) => !newParticles.find((np) => np.id === p.id)));
     }, 2000);
-  };
+  }; */
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[200] overflow-hidden">
