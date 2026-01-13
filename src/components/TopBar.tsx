@@ -56,7 +56,7 @@ const AnimatedScore = ({ score }: { score: number }) => {
 
   return (
     <span 
-      className={`text-4xl md:text-6xl font-black italic text-white tabular-nums transition-transform duration-300 ${
+      className={`text-5xl md:text-[3rem] font-black italic text-white tabular-nums transition-transform duration-300 ${
         isAnimating ? 'scale-125' : 'scale-100'
       }`}
     >
@@ -126,11 +126,11 @@ export const TopBar = () => {
           </div>
 
           {/* Circular Timer */}
-          <div className="relative flex items-center justify-center" style={{ width: isMobile ? 70 : 90, height: isMobile ? 70 : 90 }}>
-            <CircularTimer progress={timerProgress} size={isMobile ? 70 : 90} isReset={timer === timerConfig} />
+          <div className="relative flex items-center justify-center" style={{ width: isMobile ? 60 : 80, height: isMobile ? 60 : 80 }}>
+            <CircularTimer progress={timerProgress} size={isMobile ? 60 : 80} isReset={timer === timerConfig} />
             <div className="flex flex-col items-center justify-center z-10">
               <span 
-                className={`text-xl md:text-3xl font-black italic tracking-tighter tabular-nums leading-none ${
+                className={`text-base md:text-[1.5rem] font-black italic tracking-tighter tabular-nums leading-none ${
                   timer <= 5 ? 'text-nba-red animate-pulse' : 'text-white'
                 }`}
               >

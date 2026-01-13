@@ -13,6 +13,13 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background-color: #0a0a0a;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
 }
 
 #root {

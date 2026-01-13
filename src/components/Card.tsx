@@ -134,20 +134,20 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
       >
         {/* Front (Hidden) */}
         <div 
-          className="absolute inset-0 w-full h-full backface-hidden rounded-lg border-[1px] md:border-2 border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden"
+          className="absolute inset-0 w-full h-full backface-hidden rounded-lg border-[1px] md:border-2 border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden pointer-events-none"
           style={{ backfaceVisibility: 'hidden' }}
         >
           <img 
             src={GAME_CONFIG.assets.back} 
             alt="Clutch Branding" 
-            className="w-1/2 h-1/2 object-contain opacity-40"
+            className="w-1/2 h-1/2 object-contain opacity-40 pointer-events-none"
           />
         </div>
 
         {/* Back (Face Up) */}
         <motion.div 
           className={cn(
-            "absolute inset-0 w-full h-full backface-hidden rounded-lg border-[1px] md:border-2 flex items-center justify-center overflow-hidden",
+            "absolute inset-0 w-full h-full backface-hidden rounded-lg border-[1px] md:border-2 flex items-center justify-center overflow-hidden pointer-events-none",
             (theme !== 'bron-mode' && theme !== 'nba-players' && theme !== 'nfl-players') && (isMobile ? "p-1" : "p-2"),
             card.isMatched ? "border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.5)]" : 
             card.isJoker ? "border-red-500" : "border-white"
@@ -192,7 +192,7 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
               src={getImageUrl()} 
               alt={card.face} 
               className={cn(
-                "w-full h-full brightness-[1.1] drop-shadow-sm",
+                "w-full h-full brightness-[1.1] drop-shadow-sm pointer-events-none",
                 (theme === 'bron-mode' || theme === 'nba-players' || theme === 'nfl-players') ? "object-cover" : "object-contain"
               )}
             />
