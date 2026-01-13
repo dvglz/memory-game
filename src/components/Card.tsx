@@ -122,20 +122,28 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
         initial={false}
         animate={{ 
           rotateY: card.isFlipped || card.isMatched ? 180 : 0,
-          x: showTrapEffect ? [0, -8, 8, -8, 8, -4, 4, 0] : 0,
-          y: showTrapEffect ? [0, -4, 4, -4, 4, 0] : 0
+          x: showTrapEffect ? [0, -6, 6, -3, 3, 0] : 0,
+          y: showTrapEffect ? [0, -3, 3, 0] : 0
         }}
         transition={{ 
-          rotateY: { duration: 0.4, type: 'spring', stiffness: 260, damping: 20 },
-          x: { duration: 0.4, ease: "easeInOut" },
-          y: { duration: 0.4, ease: "easeInOut" }
+          rotateY: { duration: 0.35, ease: [0.4, 0, 0.2, 1] },
+          x: { duration: 0.3, ease: "easeInOut" },
+          y: { duration: 0.3, ease: "easeInOut" }
         }}
-        style={{ transformStyle: 'preserve-3d' }}
+        style={{ 
+          transformStyle: 'preserve-3d',
+          willChange: 'transform',
+          WebkitBackfaceVisibility: 'hidden',
+        }}
       >
         {/* Front (Hidden) */}
         <div 
           className="absolute inset-0 w-full h-full backface-hidden rounded-lg border-[1px] md:border-2 border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden pointer-events-none"
-          style={{ backfaceVisibility: 'hidden' }}
+          style={{ 
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            transform: 'translateZ(0)',
+          }}
         >
           <img 
             src={GAME_CONFIG.assets.back} 
@@ -162,7 +170,8 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
           }}
           style={{ 
             backfaceVisibility: 'hidden',
-            transform: 'rotateY(180deg)',
+            WebkitBackfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg) translateZ(0)',
             backgroundColor: backgroundColor
           }}
         >

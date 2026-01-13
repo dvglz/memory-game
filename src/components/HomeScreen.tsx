@@ -54,34 +54,12 @@ export const HomeScreen = ({ initialTheme }: HomeScreenProps) => {
 
   return (
     <div className="h-dvh w-full flex flex-col bg-[#0a0a0a] overflow-hidden">
-      {/* Header */}
-      <header className="flex items-center justify-between px-3 md:px-6 h-[72px] md:h-[96px] bg-zinc-950/50 backdrop-blur-md border-b border-white/5 shrink-0">
-        {/* Logo */}
-        <div className="flex items-center gap-2 group">
-          <div className="w-8 h-8 md:w-10 md:h-10 bg-nba-red rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.3)] overflow-hidden">
-            <img 
-              src="/assets/misc/miss-match-logo_min.svg" 
-              alt="Miss Match" 
-              className="w-5 h-5 md:w-6 md:h-6"
-            />
-          </div>
-          <span className="text-zinc-500 font-bold text-xs uppercase tracking-wide hidden sm:block">
-            Miss Match
-          </span>
-        </div>
-        
-        {/* Sign In */}
-        <button className="px-4 py-2 rounded-xl bg-zinc-900 border border-white/10 text-zinc-400 text-xs font-bold uppercase tracking-wide hover:bg-zinc-800 hover:text-white transition-colors">
-          Sign In
-        </button>
-      </header>
-
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 gap-8 md:gap-12">
         {/* Logo */}
-        <div className="w-48 md:w-64">
+        <div className="w-80 md:w-[500px] lg:w-[600px]">
           <img 
-            src="/assets/misc/miss-match-logo_min.svg" 
+            src="/assets/misc/miss-match_logo-full.webp" 
             alt="Miss Match" 
             className="w-full h-auto"
           />
