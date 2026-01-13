@@ -1,6 +1,7 @@
 import { NBA_TEAMS, NFL_TEAMS } from '../data/teams';
+import { NBA_PLAYERS, NFL_PLAYERS } from '../data/players';
 
-export type ThemeId = 'nba-teams' | 'nfl-teams' | 'bron-mode';
+export type ThemeId = 'nba-teams' | 'nfl-teams' | 'bron-mode' | 'nba-players' | 'nfl-players';
 
 export interface ThemeConfig {
   name: string;
@@ -18,6 +19,16 @@ export const THEMES: Record<ThemeId, ThemeConfig> = {
     name: 'NFL Teams',
     path: '/assets/teams_nfl/',
     items: Object.keys(NFL_TEAMS).map((key) => `NFL_${key}`),
+  },
+  'nba-players': {
+    name: 'NBA Players',
+    path: '',
+    items: Object.keys(NBA_PLAYERS).map((key) => `NBAP_${key}`),
+  },
+  'nfl-players': {
+    name: 'NFL Players',
+    path: '',
+    items: Object.keys(NFL_PLAYERS).map((key) => `NFLP_${key}`),
   },
   'bron-mode': {
     name: '👑 Bron Mode',

@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card as CardType } from '../types/game';
 import { GAME_CONFIG, THEMES } from '../config/gameConfig';
 import { NBA_TEAMS, NFL_TEAMS } from '../data/teams';
+import { NBA_PLAYERS, NFL_PLAYERS } from '../data/players';
 import { useGameStore } from '../store/useGameStore';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -40,16 +41,35 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
     
     if (theme === 'bron-mode') return '#552583'; // Lakers purple
     
-    const teamKey = card.face.split('_')[1];
     if (theme === 'nba-teams') {
+      const teamKey = card.face.split('_')[1];
       return NBA_TEAMS[teamKey]?.colors.primary || '#ffffff';
     } else if (theme === 'nfl-teams') {
+      const teamKey = card.face.split('_')[1];
       return NFL_TEAMS[teamKey]?.colors.primary || '#ffffff';
+    } else if (theme === 'nba-players') {
+      const playerKey = card.face.split('_')[1];
+      return NBA_PLAYERS[playerKey]?.colors.primary || '#ffffff';
+    } else if (theme === 'nfl-players') {
+      const playerKey = card.face.split('_')[1];
+      return NFL_PLAYERS[playerKey]?.colors.primary || '#ffffff';
     }
     return '#ffffff';
   };
 
   const backgroundColor = getBackgroundColor();
+
+  const getImageUrl = () => {
+    if (theme === 'nba-players') {
+      const playerKey = card.face.split('_')[1];
+      return NBA_PLAYERS[playerKey]?.headshot;
+    }
+    if (theme === 'nfl-players') {
+      const playerKey = card.face.split('_')[1];
+      return NFL_PLAYERS[playerKey]?.headshot;
+    }
+    return `${themePath}${card.face}.${theme === 'bron-mode' ? 'jpg' : 'png'}`;
+  };
 
   return (
     <div 
@@ -118,7 +138,7 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
         <motion.div 
           className={cn(
             "absolute inset-0 w-full h-full backface-hidden rounded-lg border-[1px] md:border-2 flex items-center justify-center overflow-hidden",
-            theme !== 'bron-mode' && (isMobile ? "p-1" : "p-2"),
+            (theme !== 'bron-mode' && theme !== 'nba-players' && theme !== 'nfl-players') && (isMobile ? "p-1" : "p-2"),
             card.isMatched ? "border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.5)]" : 
             card.isJoker ? "border-red-500" : "border-white"
           )}
@@ -159,11 +179,11 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
             </motion.div>
           ) : (
             <img 
-              src={`${themePath}${card.face}.${theme === 'bron-mode' ? 'jpg' : 'png'}`} 
+              src={getImageUrl()} 
               alt={card.face} 
               className={cn(
                 "w-full h-full brightness-[1.1] drop-shadow-sm",
-                theme === 'bron-mode' ? "object-cover" : "object-contain"
+                (theme === 'bron-mode' || theme === 'nba-players' || theme === 'nfl-players') ? "object-cover" : "object-contain"
               )}
             />
           )}
