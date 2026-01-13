@@ -2,9 +2,10 @@ import { useGameStore } from '../store/useGameStore';
 import { Card } from './Card';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { GAME_CONFIG } from '../config/gameConfig';
+import { multiplayerClient } from '../multiplayer';
 
 export const Board = () => {
-  const { cards, flipCard, isProcessing, columns: storeColumns, isTiebreaker } = useGameStore();
+  const { cards, flipCard, isProcessing, columns: storeColumns, isTiebreaker, isOnline, myPlayerIndex, currentPlayerIndex } = useGameStore();
   const isMobile = useMediaQuery('(max-width: 767px)');
 
   if (!cards.length) return null;
@@ -36,7 +37,16 @@ export const Board = () => {
         <Card 
           key={card.id} 
           card={card} 
-          onClick={() => flipCard(card.id)} 
+          onClick={() => {
+            if (isOnline) {
+              // Only allow flip if it's my turn
+              if (myPlayerIndex === currentPlayerIndex) {
+                multiplayerClient.flipCard(card.id);
+              }
+            } else {
+              flipCard(card.id);
+            }
+          }} 
           isProcessing={isProcessing}
         />
       ))}

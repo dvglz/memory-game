@@ -1,9 +1,10 @@
 import { useGameStore } from '../store/useGameStore';
 import { THEMES } from '../config/gameConfig';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Wifi } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { ThemeModal } from './ThemeModal';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { multiplayerClient } from '../multiplayer';
 
 // Circular timer component (full circle, outside the timer text)
 const CircularTimer = ({ progress, size = 80, isReset }: { progress: number; size?: number; isReset: boolean }) => {
@@ -73,7 +74,9 @@ export const TopBar = () => {
     status,
     players,
     resetToIdle,
-    timerConfig
+    timerConfig,
+    isOnline,
+    myPlayerIndex,
   } = useGameStore();
   
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
@@ -85,12 +88,27 @@ export const TopBar = () => {
   const isPlaying = status === 'playing';
   const timerProgress = timer / timerConfig;
 
+  const handleExit = () => {
+    if (isOnline) {
+      multiplayerClient.disconnect();
+    }
+    resetToIdle();
+  };
+
+  // Get display names (for online, use actual names, otherwise P1/P2)
+  const p1Name = isOnline ? (p1?.name || 'Player 1') : (isMobile ? 'P1' : 'PLAYER 1');
+  const p2Name = isOnline ? (p2?.name || 'Player 2') : (isMobile ? 'P2' : 'PLAYER 2');
+  
+  // Truncate names for display
+  const truncateName = (name: string, max: number) => 
+    name.length > max ? name.substring(0, max) + '…' : name;
+
   return (
     <>
       <div className="w-full flex items-center justify-between px-3 md:px-6 h-[72px] md:h-[96px] bg-zinc-950/50 backdrop-blur-md border-b border-white/5 flex-shrink-0 z-[100] relative">
         {/* Left: Logo */}
         <button 
-          onClick={resetToIdle}
+          onClick={handleExit}
           className="flex items-center gap-2 group flex-shrink-0 z-10"
         >
           <div className="w-8 h-8 md:w-10 md:h-10 bg-nba-red rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.3)] group-hover:scale-105 transition-transform overflow-hidden">
@@ -101,9 +119,14 @@ export const TopBar = () => {
             />
           </div>
           {!isMobile && (
-            <span className="text-zinc-500 font-bold text-xs uppercase tracking-wide">
-              Miss Match
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-zinc-500 font-bold text-xs uppercase tracking-wide">
+                Miss Match
+              </span>
+              {isOnline && (
+                <Wifi className="w-3 h-3 text-green-500" />
+              )}
+            </div>
           )}
         </button>
 
@@ -114,8 +137,8 @@ export const TopBar = () => {
             <div className="flex flex-col items-end min-w-[60px] md:min-w-[100px]">
               <span className={`text-[10px] md:text-xs font-black italic uppercase tracking-wider ${
                 isPlaying && currentPlayerIndex === 0 ? 'text-nba-red' : 'text-zinc-500'
-              }`}>
-                {isMobile ? 'P1' : 'PLAYER 1'}
+              } ${isOnline && myPlayerIndex === 0 ? 'underline underline-offset-2' : ''}`}>
+                {truncateName(p1Name, isMobile ? 6 : 12)}
               </span>
               <AnimatedScore score={p1?.score ?? 0} />
             </div>
@@ -155,8 +178,8 @@ export const TopBar = () => {
             <div className="flex flex-col items-start min-w-[60px] md:min-w-[100px]">
               <span className={`text-[10px] md:text-xs font-black italic uppercase tracking-wider ${
                 isPlaying && currentPlayerIndex === 1 ? 'text-nba-red' : 'text-zinc-500'
-              }`}>
-                {isMobile ? 'P2' : 'PLAYER 2'}
+              } ${isOnline && myPlayerIndex === 1 ? 'underline underline-offset-2' : ''}`}>
+                {truncateName(p2Name, isMobile ? 6 : 12)}
               </span>
               <AnimatedScore score={p2?.score ?? 0} />
             </div>

@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import { GameState, Card } from '../types/game';
+import { GameState, Card, Player } from '../types/game';
 import { GAME_CONFIG, THEMES, ThemeId } from '../config/gameConfig';
 import { NBA_PLAYERS, NFL_PLAYERS } from '../data/players';
 import { preloadImages } from '../utils/imagePreloader';
+import type { RoomState, ClientCard } from '../multiplayer/types';
 
 // Preload core assets immediately
 preloadImages([
@@ -16,6 +17,9 @@ interface GameStore extends GameState {
   resetTurn: () => void;
   decrementTimer: () => void;
   checkVictory: () => void;
+  // Online multiplayer
+  syncFromServer: (serverState: RoomState) => void;
+  setOnlineMode: (isOnline: boolean) => void;
   // Debug Actions
   togglePause: () => void;
   peekCards: () => void;
@@ -73,6 +77,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   isTiebreaker: false,
   revealedCardIds: new Set(),
   debugShowResults: false,
+  isOnline: false,
+  myPlayerIndex: -1,
 
   initGame: (mode, options = {}) => {
     const { isTiebreaker = false, pairs, columns, playerCount } = options;
@@ -140,6 +146,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       isPeeking: false,
       isTiebreaker,
       revealedCardIds: new Set(),
+      isOnline: false,
+      myPlayerIndex: -1,
       players: isTiebreaker 
         ? get().players.map(p => ({ 
             ...p, 
@@ -294,6 +302,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   decrementTimer: () => {
     const state = get();
+    // Online games use server timer
+    if (state.isOnline) return;
     if (state.status !== 'playing' || state.isProcessing || state.isPaused || state.isPeeking) return;
 
     if (state.timer <= 0) {
@@ -413,8 +423,82 @@ export const useGameStore = create<GameStore>((set, get) => ({
     matchedPairs: 0, 
     winner: null,
     currentPlayerIndex: 0,
-    players: []
+    players: [],
+    isOnline: false,
+    myPlayerIndex: -1,
   }),
+
+  setOnlineMode: (isOnline: boolean) => set({ isOnline }),
+
+  syncFromServer: (serverState: RoomState) => {
+    // Convert server cards to local Card format
+    const cards: Card[] = serverState.cards.map((c: ClientCard) => ({
+      id: c.id,
+      face: c.face || '', // Will be empty string until revealed
+      isFlipped: c.isFlipped,
+      isMatched: c.isMatched,
+    }));
+
+    // Convert server players to local Player format
+    const players: Player[] = serverState.players.map((p, i) => ({
+      id: i + 1,
+      name: p.name,
+      score: p.score,
+      stats: {
+        blindShots: 0,
+        maxStreak: 0,
+        currentStreak: 0,
+        totalMoves: 0,
+        timeSpent: 0,
+        trapHits: 0,
+      },
+    }));
+
+    // Map server status to local status
+    let status: GameState['status'] = 'idle';
+    if (serverState.status === 'playing') status = 'playing';
+    else if (serverState.status === 'finished') {
+      status = serverState.winner ? 'gameOver' : 'tiebreaker';
+    }
+    else if (serverState.status === 'waiting') status = 'idle';
+
+    // Count matched pairs
+    const matchedPairs = cards.filter(c => c.isMatched).length / 2;
+
+    // Determine winner
+    let winner: Player | null = null;
+    if (serverState.winner && players.length > 0) {
+      const winnerIndex = serverState.players.findIndex(
+        p => p.id === serverState.winner?.id
+      );
+      if (winnerIndex >= 0) {
+        winner = players[winnerIndex];
+      }
+    }
+
+    set({
+      status,
+      cards,
+      players,
+      currentPlayerIndex: serverState.currentPlayerIndex,
+      timer: serverState.timer,
+      matchedPairs,
+      winner,
+      isOnline: true,
+      myPlayerIndex: serverState.myPlayerIndex,
+      playerCount: 2,
+      columns: 5, // Fixed for V1: 10 pairs = 5 columns
+      mode: '1v1',
+    });
+
+    // Preload images for revealed cards
+    const revealedFaces = cards
+      .filter(c => c.face && c.face.startsWith('NBA_'))
+      .map(c => `/assets/teams_nba/${c.face}.webp`);
+    if (revealedFaces.length > 0) {
+      preloadImages(revealedFaces);
+    }
+  },
 
   debugTriggerEffect: (type) => {
     const state = get();

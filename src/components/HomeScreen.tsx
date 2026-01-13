@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Users, User, ExternalLink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Users, User, ExternalLink, Wifi } from 'lucide-react';
 import { THEMES, ThemeId } from '../config/gameConfig';
 import { useGameStore } from '../store/useGameStore';
 import { useNavigate } from 'react-router-dom';
@@ -12,9 +12,10 @@ const VISIBLE_THEMES = (Object.entries(THEMES) as [ThemeId, typeof THEMES['nba-t
 
 interface HomeScreenProps {
   initialTheme?: ThemeId;
+  onPlayOnline?: () => void;
 }
 
-export const HomeScreen = ({ initialTheme }: HomeScreenProps) => {
+export const HomeScreen = ({ initialTheme, onPlayOnline }: HomeScreenProps) => {
   const { initGame, setTheme } = useGameStore();
   const navigate = useNavigate();
   
@@ -102,23 +103,35 @@ export const HomeScreen = ({ initialTheme }: HomeScreenProps) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 md:gap-4 w-full max-w-md px-4">
-          {/* Local 1v1 Mode */}
-          <button
-            onClick={handleStartVersus}
-            className="group flex-1 flex flex-col items-center gap-2 md:gap-3 p-5 md:p-6 rounded-2xl bg-gradient-to-b from-nba-red to-red-700 border-2 border-nba-orange/50 hover:border-nba-orange transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-nba-red/20"
-          >
-            <Users className="w-7 h-7 md:w-8 md:h-8 text-white group-hover:scale-110 transition-transform" />
-            <span className="text-sm md:text-base font-black uppercase tracking-tight text-white">Local 1v1</span>
-          </button>
+        <div className="flex flex-col gap-3 md:gap-4 w-full max-w-md px-4">
+          {/* Top Row: Local and Online */}
+          <div className="flex gap-3 md:gap-4">
+            {/* Local 1v1 Mode */}
+            <button
+              onClick={handleStartVersus}
+              className="group flex-1 flex flex-col items-center gap-2 md:gap-3 p-5 md:p-6 rounded-2xl bg-gradient-to-b from-nba-red to-red-700 border-2 border-nba-orange/50 hover:border-nba-orange transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-nba-red/20"
+            >
+              <Users className="w-7 h-7 md:w-8 md:h-8 text-white group-hover:scale-110 transition-transform" />
+              <span className="text-sm md:text-base font-black uppercase tracking-tight text-white">Local 1v1</span>
+            </button>
+
+            {/* Online 1v1 Mode */}
+            <button
+              onClick={onPlayOnline}
+              className="group flex-1 flex flex-col items-center gap-2 md:gap-3 p-5 md:p-6 rounded-2xl bg-gradient-to-b from-blue-600 to-blue-800 border-2 border-blue-400/50 hover:border-blue-400 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-600/20"
+            >
+              <Wifi className="w-7 h-7 md:w-8 md:h-8 text-white group-hover:scale-110 transition-transform" />
+              <span className="text-sm md:text-base font-black uppercase tracking-tight text-white">Online</span>
+            </button>
+          </div>
 
           {/* Single Mode - Disabled */}
           <button
             disabled
-            className="relative flex-1 flex flex-col items-center gap-2 md:gap-3 p-5 md:p-6 rounded-2xl bg-zinc-900 border-2 border-zinc-800 cursor-not-allowed opacity-60"
+            className="relative flex flex-col items-center gap-2 md:gap-3 p-4 md:p-5 rounded-2xl bg-zinc-900 border-2 border-zinc-800 cursor-not-allowed opacity-60"
           >
-            <User className="w-7 h-7 md:w-8 md:h-8 text-zinc-500" />
-            <span className="text-sm md:text-base font-black uppercase tracking-tight text-zinc-500">Single</span>
+            <User className="w-6 h-6 md:w-7 md:h-7 text-zinc-500" />
+            <span className="text-xs md:text-sm font-black uppercase tracking-tight text-zinc-500">Single Player</span>
             <span className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-zinc-700 text-[10px] font-bold uppercase text-zinc-300">
               Soon
             </span>

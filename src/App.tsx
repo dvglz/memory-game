@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useGameStore } from './store/useGameStore';
 import { Board } from './components/Board';
 import { VictoryOverlay } from './components/VictoryOverlay';
@@ -6,20 +6,35 @@ import { DebugPanel } from './components/DebugPanel';
 import { GameEffects } from './components/GameEffects';
 import { TopBar } from './components/TopBar';
 import { HomeScreen } from './components/HomeScreen';
+import { LobbyScreen } from './components/LobbyScreen';
 import { THEMES, ThemeId } from './config/gameConfig';
 import { Routes, Route, useParams, useNavigate, Navigate } from 'react-router-dom';
+import { useMultiplayer } from './multiplayer';
 
 function GameContainer() {
   const { themeId } = useParams<{ themeId: string }>();
   const navigate = useNavigate();
+  const [showLobby, setShowLobby] = useState(false);
+  
   const { 
     status, 
     decrementTimer, 
     isPaused, 
     isPeeking, 
     theme,
-    setTheme
+    setTheme,
+    isOnline,
+    syncFromServer,
   } = useGameStore();
+
+  const multiplayer = useMultiplayer();
+
+  // Sync multiplayer state to store
+  useEffect(() => {
+    if (multiplayer.roomState && (multiplayer.roomState.status === 'playing' || multiplayer.roomState.status === 'finished')) {
+      syncFromServer(multiplayer.roomState);
+    }
+  }, [multiplayer.roomState, syncFromServer]);
 
   // Fix mobile viewport offset when returning to tab
   useEffect(() => {
@@ -55,19 +70,38 @@ function GameContainer() {
 
   useEffect(() => {
     let interval: number;
-    if (status === 'playing' && !isPaused && !isPeeking) {
+    if (status === 'playing' && !isPaused && !isPeeking && !isOnline) {
       interval = setInterval(() => {
         decrementTimer();
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [status, isPaused, isPeeking, decrementTimer]);
+  }, [status, isPaused, isPeeking, decrementTimer, isOnline]);
+
+  // Lobby screen
+  if (showLobby) {
+    return (
+      <LobbyScreen 
+        onBack={() => {
+          multiplayer.disconnect();
+          setShowLobby(false);
+        }}
+        onGameStart={() => {
+          setShowLobby(false);
+        }}
+        multiplayer={multiplayer}
+      />
+    );
+  }
 
   if (status === 'idle') {
     return (
       <>
         <DebugPanel />
-        <HomeScreen initialTheme={themeId as ThemeId} />
+        <HomeScreen 
+          initialTheme={themeId as ThemeId} 
+          onPlayOnline={() => setShowLobby(true)}
+        />
       </>
     );
   }

@@ -38,6 +38,9 @@ export interface GameState {
   playerCount: number;
   columns: number;
   revealedCardIds: Set<string>;
+  // Online multiplayer
+  isOnline: boolean;
+  myPlayerIndex: number;
   // Debug & Config
   theme: ThemeId;
   isPaused: boolean;

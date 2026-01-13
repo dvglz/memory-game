@@ -1,10 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
 import { THEMES, GAME_CONFIG } from '../config/gameConfig';
-import { RefreshCw, Target, Flame, MousePointer2, Clock, Bomb, X } from 'lucide-react';
+import { RefreshCw, Target, Flame, MousePointer2, Clock, Bomb, X, Home } from 'lucide-react';
+import { multiplayerClient } from '../multiplayer';
 
 export const VictoryOverlay = () => {
-  const { status, winner, players, initGame, mode, theme, isTiebreaker, debugShowResults, toggleDebugResults, jokerEnabled } = useGameStore();
+  const { status, winner, players, initGame, mode, theme, isTiebreaker, debugShowResults, toggleDebugResults, jokerEnabled, isOnline, resetToIdle } = useGameStore();
 
   const isVisible = ['victoryLocked', 'tiebreaker', 'gameOver'].includes(status) || debugShowResults;
   const themeName = THEMES[theme].name;
@@ -221,9 +222,20 @@ export const VictoryOverlay = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="flex flex-col items-center"
+          className="flex flex-col items-center gap-3"
         >
-          {isTie ? (
+          {isOnline ? (
+            // Online mode: just go back to home
+            <button
+              onClick={() => {
+                multiplayerClient.disconnect();
+                resetToIdle();
+              }}
+              className="bg-white text-black px-12 py-4 rounded-2xl font-black uppercase tracking-[0.15em] hover:bg-nba-red hover:text-white transition-all flex items-center gap-2 group"
+            >
+              Back to Menu <Home className="w-4 h-4" />
+            </button>
+          ) : isTie ? (
             <button 
               onClick={() => initGame(mode, { isTiebreaker: true })}
               className="bg-nba-orange text-white px-12 py-4 rounded-2xl font-black uppercase tracking-[0.15em] hover:bg-white hover:text-black transition-all flex flex-col items-center gap-1 group"
