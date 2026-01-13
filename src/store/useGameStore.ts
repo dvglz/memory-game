@@ -119,7 +119,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           const playerKey = c.face.split('_')[1];
           return NFL_PLAYERS[playerKey]?.headshot;
         }
-        return `${themePath}${c.face}.${currentTheme === 'bron-mode' ? 'jpg' : 'png'}`;
+        return `${themePath}${c.face}.${currentTheme === 'bron-mode' ? 'jpg' : 'webp'}`;
       })
       .filter((url): url is string => !!url);
 

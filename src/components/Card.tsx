@@ -23,6 +23,7 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
   const { theme, showJerseyColors } = useGameStore();
   const themePath = THEMES[theme].path;
   const [showTrapEffect, setShowTrapEffect] = useState(false);
+  const [showMatchShimmer, setShowMatchShimmer] = useState(false);
   const isMobile = useMediaQuery('(max-width: 767px)');
 
   // Trigger trap effect when joker is revealed
@@ -33,6 +34,15 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
       return () => clearTimeout(timer);
     }
   }, [card.isFlipped, card.isJoker, card.isMatched]);
+
+  // Trigger shimmer effect when card is matched
+  useEffect(() => {
+    if (card.isMatched && !card.isJoker) {
+      setShowMatchShimmer(true);
+      const timer = setTimeout(() => setShowMatchShimmer(false), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [card.isMatched, card.isJoker]);
 
   // Get primary color if jersey colors are enabled
   const getBackgroundColor = () => {
@@ -68,7 +78,7 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
       const playerKey = card.face.split('_')[1];
       return NFL_PLAYERS[playerKey]?.headshot;
     }
-    return `${themePath}${card.face}.${theme === 'bron-mode' ? 'jpg' : 'png'}`;
+    return `${themePath}${card.face}.${theme === 'bron-mode' ? 'jpg' : 'webp'}`;
   };
 
   return (
@@ -187,6 +197,27 @@ export const Card = ({ card, onClick, isProcessing }: CardProps) => {
               )}
             />
           )}
+
+          {/* Match shimmer effect */}
+          <AnimatePresence>
+            {showMatchShimmer && (
+              <motion.div
+                className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.1 }}
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent"
+                  initial={{ x: '-100%', skewX: -15 }}
+                  animate={{ x: '200%' }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                  style={{ width: '50%' }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </motion.div>
     </div>
