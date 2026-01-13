@@ -7,6 +7,7 @@ export interface ThemeConfig {
   name: string;
   path: string;
   items: string[];
+  hidden?: boolean;
 }
 
 export const THEMES: Record<ThemeId, ThemeConfig> = {
@@ -34,6 +35,7 @@ export const THEMES: Record<ThemeId, ThemeConfig> = {
     name: '👑 Bron Mode',
     path: '/assets/bron/',
     items: Array.from({ length: 12 }, (_, i) => `bron_${String(i + 1).padStart(2, '0')}`),
+    hidden: true,
   },
 };
 

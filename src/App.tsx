@@ -25,6 +25,12 @@ function GameContainer() {
   // Sync theme with URL
   useEffect(() => {
     if (themeId && THEMES[themeId as ThemeId]) {
+      // Don't allow hidden themes via URL
+      if (THEMES[themeId as ThemeId].hidden) {
+        navigate('/nba-teams', { replace: true });
+        return;
+      }
+      
       if (theme !== themeId) {
         setTheme(themeId as ThemeId);
       }

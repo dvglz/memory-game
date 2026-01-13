@@ -65,7 +65,7 @@ export const DebugPanel = () => {
           <label className="text-[10px] font-bold uppercase tracking-tighter text-zinc-500">Game Theme</label>
           <div className="grid grid-cols-2 gap-2">
             {(Object.keys(THEMES) as ThemeId[])
-              .filter(t => t !== 'bron-mode')
+              .filter(t => !THEMES[t].hidden)
               .map((t) => (
               <button
                 key={t}
@@ -83,23 +83,25 @@ export const DebugPanel = () => {
         </div>
 
         {/* Bron Mode Special */}
-        <button
-          onClick={activateBronMode}
-          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold transition-all border ${
-            isBronMode 
-              ? 'bg-purple-500/20 border-purple-500 text-purple-400' 
-              : 'bg-zinc-900 border-white/5 text-zinc-500 hover:bg-zinc-800'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Crown className="w-4 h-4" />
-            <div className="flex flex-col items-start text-left">
-              <span>Bron Mode</span>
-              <span className="text-[8px] opacity-60 font-normal">12 pairs • No traps • Expressions</span>
+        {!THEMES['bron-mode'].hidden && (
+          <button
+            onClick={activateBronMode}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold transition-all border ${
+              isBronMode 
+                ? 'bg-purple-500/20 border-purple-500 text-purple-400' 
+                : 'bg-zinc-900 border-white/5 text-zinc-500 hover:bg-zinc-800'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Crown className="w-4 h-4" />
+              <div className="flex flex-col items-start text-left">
+                <span>Bron Mode</span>
+                <span className="text-[8px] opacity-60 font-normal">12 pairs • No traps • Expressions</span>
+              </div>
             </div>
-          </div>
-          {isBronMode && <span className="text-[9px] bg-purple-500 text-white px-2 py-0.5 rounded-full">ACTIVE</span>}
-        </button>
+            {isBronMode && <span className="text-[9px] bg-purple-500 text-white px-2 py-0.5 rounded-full">ACTIVE</span>}
+          </button>
+        )}
 
         {/* Controls */}
         <div className="space-y-2">

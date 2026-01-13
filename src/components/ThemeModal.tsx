@@ -61,7 +61,9 @@ export const ThemeModal = ({ isOpen, onClose }: ThemeModalProps) => {
               </div>
 
               <div className="grid gap-3">
-                {(Object.entries(THEMES) as [ThemeId, typeof THEMES['nba-teams']][]).map(([id, config]) => {
+                {(Object.entries(THEMES) as [ThemeId, typeof THEMES['nba-teams']][])
+                  .filter(([_, config]) => !config.hidden)
+                  .map(([id, config]) => {
                   const isSelected = theme === id;
                   return (
                     <button
