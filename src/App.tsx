@@ -21,6 +21,20 @@ function GameContainer() {
     setTheme
   } = useGameStore();
 
+  // Fix mobile viewport offset when returning to tab
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   // Sync theme with URL
   useEffect(() => {
     if (themeId && THEMES[themeId as ThemeId]) {
