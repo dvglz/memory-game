@@ -1,6 +1,14 @@
 import { create } from 'zustand';
 import { GameState, Card } from '../types/game';
 import { GAME_CONFIG, THEMES, ThemeId } from '../config/gameConfig';
+import { NBA_PLAYERS, NFL_PLAYERS } from '../data/players';
+import { preloadImages } from '../utils/imagePreloader';
+
+// Preload core assets immediately
+preloadImages([
+  GAME_CONFIG.assets.back,
+  '/assets/misc/bg-pattern.svg'
+]);
 
 interface GameStore extends GameState {
   initGame: (mode?: '1v1' | 'solo', options?: { isTiebreaker?: boolean; pairs?: number; columns?: number; playerCount?: number }) => void;
@@ -97,6 +105,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
 
     cards = shuffle(cards);
+
+    // Preload round images
+    const themePath = THEMES[currentTheme].path;
+    const imageUrls = cards
+      .filter(c => !c.isJoker)
+      .map(c => {
+        if (currentTheme === 'nba-players') {
+          const playerKey = c.face.split('_')[1];
+          return NBA_PLAYERS[playerKey]?.headshot;
+        }
+        if (currentTheme === 'nfl-players') {
+          const playerKey = c.face.split('_')[1];
+          return NFL_PLAYERS[playerKey]?.headshot;
+        }
+        return `${themePath}${c.face}.${currentTheme === 'bron-mode' ? 'jpg' : 'png'}`;
+      })
+      .filter((url): url is string => !!url);
+
+    preloadImages(imageUrls);
 
     set({
       mode: currentMode,
