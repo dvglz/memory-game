@@ -3,12 +3,18 @@ import { GameState, Card } from '../types/game';
 import { GAME_CONFIG, THEMES, ThemeId } from '../config/gameConfig';
 import { NBA_PLAYERS, NFL_PLAYERS } from '../data/players';
 import { preloadImages } from '../utils/imagePreloader';
+import { trackEvent } from '../utils/analytics';
 
 // Preload core assets immediately
 preloadImages([
   GAME_CONFIG.assets.back,
   '/assets/misc/bg-pattern.svg'
 ]);
+
+let analyticsRound = 0;
+let lastTrackedStartRound = -1;
+let lastTrackedEndRound = -1;
+let currentAnalyticsSource: 'home' | 'rematch' | 'overtime' | 'restart' = 'home';
 
 interface GameStore extends GameState {
   initGame: (mode?: '1v1' | 'solo', options?: { isTiebreaker?: boolean; pairs?: number; columns?: number; playerCount?: number }) => void;
@@ -76,10 +82,31 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   initGame: (mode, options = {}) => {
     const { isTiebreaker = false, pairs, columns, playerCount } = options;
+    const prevStatus = get().status;
     const currentMode = mode || get().mode;
     const currentTheme = get().theme;
     const jokerEnabled = get().jokerEnabled && !isTiebreaker;
     const currentPlayerCount = playerCount || get().playerCount;
+
+    analyticsRound += 1;
+    if (isTiebreaker) {
+      currentAnalyticsSource = 'overtime';
+    } else if (prevStatus === 'idle') {
+      currentAnalyticsSource = 'home';
+    } else if (prevStatus === 'victoryLocked' || prevStatus === 'gameOver') {
+      currentAnalyticsSource = 'rematch';
+    } else {
+      currentAnalyticsSource = 'restart';
+    }
+
+    if (lastTrackedStartRound !== analyticsRound) {
+      lastTrackedStartRound = analyticsRound;
+      trackEvent('game_start', {
+        game_mode: currentMode,
+        theme: currentTheme,
+        source: currentAnalyticsSource,
+      });
+    }
     
     const config = isTiebreaker 
       ? GAME_CONFIG.tiebreaker 
@@ -334,6 +361,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     // Check if leader cannot be caught
     if (leader.score > runnerUp.score + remainingPairs) {
+      if (lastTrackedEndRound !== analyticsRound) {
+        lastTrackedEndRound = analyticsRound;
+        trackEvent('game_end', {
+          game_mode: state.mode,
+          theme: state.theme,
+          source: currentAnalyticsSource,
+          end_state: 'victoryLocked',
+        });
+      }
       set({ 
         status: 'victoryLocked', 
         winner: leader,
@@ -345,12 +381,30 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // End of game
     if (remainingPairs === 0) {
       if (leader.score > runnerUp.score) {
+        if (lastTrackedEndRound !== analyticsRound) {
+          lastTrackedEndRound = analyticsRound;
+          trackEvent('game_end', {
+            game_mode: state.mode,
+            theme: state.theme,
+            source: currentAnalyticsSource,
+            end_state: 'gameOver',
+          });
+        }
         set({ 
           status: 'gameOver', 
           winner: leader,
           cards: state.cards.map(c => c.isJoker ? { ...c, isFlipped: true } : c)
         });
       } else {
+        if (lastTrackedEndRound !== analyticsRound) {
+          lastTrackedEndRound = analyticsRound;
+          trackEvent('game_end', {
+            game_mode: state.mode,
+            theme: state.theme,
+            source: currentAnalyticsSource,
+            end_state: 'tiebreaker',
+          });
+        }
         // Tie between at least the top two players
         set({ status: 'tiebreaker' });
       }

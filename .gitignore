@@ -4,3 +4,4 @@ package-lock.json
 .misc
 dist
 .cursor
+.npm-cache
