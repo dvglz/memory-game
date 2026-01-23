@@ -63,3 +63,19 @@ export function trackEvent(
   window.gtag('event', name, cleaned || {});
 }
 
+export function trackPageView(pagePath?: string) {
+  if (!hasValidId(GA4_ID)) return;
+  if (typeof window === 'undefined') return;
+  if (!window.gtag) return;
+
+  const path =
+    pagePath ??
+    `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+  window.gtag('event', 'page_view', {
+    page_title: document.title,
+    page_location: window.location.href,
+    page_path: path,
+  });
+}
+
