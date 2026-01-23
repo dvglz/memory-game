@@ -5,7 +5,7 @@ declare global {
   }
 }
 
-const GA4_ID = (import.meta.env.VITE_GA4_ID as string | undefined)?.trim();
+const GA4_ID = 'G-8MMPECWNWC';
 
 let isInitialized = false;
 

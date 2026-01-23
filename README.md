@@ -9,18 +9,6 @@ npm install
 npm run dev
 ```
 
-## Analytics (GA4)
-
-GA4 is already wired up via `src/utils/analytics.ts` and initialized in `src/main.tsx`.
-SPA route changes send `page_view` events automatically from `src/App.tsx`.
-
-- Copy `env.example` → `.env`
-- Set:
-
-```bash
-VITE_GA4_ID=G-8MMPECWNWC
-```
-
 ## Debug Menu
 
 Press **\`** (backtick) to toggle the debug panel.
