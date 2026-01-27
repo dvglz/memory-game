@@ -2,6 +2,14 @@ import { ThemeId } from "../config/gameConfig";
 
 export type GameStatus = 'idle' | 'playing' | 'checking' | 'victoryLocked' | 'tiebreaker' | 'gameOver';
 
+export type SoloTier = 'gold' | 'silver' | null;
+
+export interface SoloBest {
+  moves: number;
+  tier: SoloTier;
+  timestamp: number;
+}
+
 export interface Card {
   id: string;
   face: string;
@@ -38,6 +46,13 @@ export interface GameState {
   playerCount: number;
   columns: number;
   revealedCardIds: Set<string>;
+  soloResult: {
+    tier: SoloTier;
+    isNewBest: boolean;
+    bestMoves?: number;
+  } | null;
+  soloElapsedTime: number;
+  soloHasPeeked: boolean;
   // Debug & Config
   theme: ThemeId;
   isPaused: boolean;

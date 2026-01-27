@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { GameState, Card } from '../types/game';
+import { GameState, Card, SoloTier, SoloBest } from '../types/game';
 import { GAME_CONFIG, THEMES, ThemeId } from '../config/gameConfig';
 import { NBA_PLAYERS, NFL_PLAYERS } from '../data/players';
 import { preloadImages } from '../utils/imagePreloader';
@@ -22,6 +22,7 @@ interface GameStore extends GameState {
   resetTurn: () => void;
   decrementTimer: () => void;
   checkVictory: () => void;
+  incrementSoloTime: () => void;
   // Debug Actions
   togglePause: () => void;
   peekCards: () => void;
@@ -79,14 +80,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
   isTiebreaker: false,
   revealedCardIds: new Set(),
   debugShowResults: false,
+  soloResult: null,
+  soloElapsedTime: 0,
+  soloHasPeeked: false,
 
   initGame: (mode, options = {}) => {
     const { isTiebreaker = false, pairs, columns, playerCount } = options;
     const prevStatus = get().status;
     const currentMode = mode || get().mode;
     const currentTheme = get().theme;
-    const jokerEnabled = get().jokerEnabled && !isTiebreaker;
-    const currentPlayerCount = playerCount || get().playerCount;
+    const jokerEnabled = currentMode === 'solo' ? false : (get().jokerEnabled && !isTiebreaker);
+    const currentPlayerCount = currentMode === 'solo' ? 1 : (playerCount || get().playerCount);
 
     analyticsRound += 1;
     if (isTiebreaker) {
@@ -167,6 +171,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       isPeeking: false,
       isTiebreaker,
       revealedCardIds: new Set(),
+      soloResult: null,
+      soloElapsedTime: 0,
+      soloHasPeeked: false,
       players: isTiebreaker 
         ? get().players.map(p => ({ 
             ...p, 
@@ -175,7 +182,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           }))
         : Array.from({ length: currentPlayerCount }, (_, i) => ({
             id: i + 1,
-            name: `Player ${i + 1}`,
+            name: currentMode === 'solo' ? 'You' : `Player ${i + 1}`,
             score: 0,
             stats: {
               blindShots: 0,
@@ -187,6 +194,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
             }
           })),
     });
+
+    // Auto-peek for solo mode
+    if (currentMode === 'solo') {
+      const peekCards = get().cards.map(c => ({ ...c, isFlipped: true }));
+      const newRevealed = new Set<string>();
+      get().cards.forEach(c => newRevealed.add(c.id));
+      
+      set({ isPeeking: true, cards: peekCards, revealedCardIds: newRevealed, soloHasPeeked: true });
+      
+      setTimeout(() => {
+        if (get().isPeeking && get().mode === 'solo') {
+          const resetCards = get().cards.map(c => ({ ...c, isFlipped: false }));
+          set({ isPeeking: false, cards: resetCards });
+        }
+      }, GAME_CONFIG.solo.peekDuration);
+    }
   },
 
   flipCard: (cardId) => {
@@ -321,7 +344,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   decrementTimer: () => {
     const state = get();
-    if (state.status !== 'playing' || state.isProcessing || state.isPaused || state.isPeeking) return;
+    if (state.mode === 'solo' || state.status !== 'playing' || state.isProcessing || state.isPaused || state.isPeeking) return;
 
     if (state.timer <= 0) {
       const newCards = state.cards.map(c => 
@@ -348,12 +371,62 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
   },
 
+  incrementSoloTime: () => {
+    const state = get();
+    if (state.mode !== 'solo' || state.status !== 'playing' || state.isPaused || state.isPeeking) return;
+    
+    // Update both soloElapsedTime and player's timeSpent stat
+    const newPlayers = [...state.players];
+    if (newPlayers[0]) {
+      newPlayers[0].stats.timeSpent += 1;
+    }
+    
+    set({ 
+      soloElapsedTime: state.soloElapsedTime + 1,
+      players: newPlayers
+    });
+  },
+
   checkVictory: () => {
     const state = get();
     const jokerCount = state.cards.filter(c => c.isJoker).length;
     const totalPairs = (state.cards.length - jokerCount) / 2;
     const remainingPairs = totalPairs - state.matchedPairs;
     
+    if (state.mode === 'solo') {
+      if (remainingPairs === 0) {
+        const moves = state.players[0].stats.totalMoves;
+        let tier: SoloTier = null;
+        if (moves <= GAME_CONFIG.solo.goldThreshold) tier = 'gold';
+        else if (moves <= GAME_CONFIG.solo.silverThreshold) tier = 'silver';
+
+        // LocalStorage logic
+        const storageKey = `solo_best_${state.theme}`;
+        const saved = localStorage.getItem(storageKey);
+        const best: SoloBest | null = saved ? JSON.parse(saved) : null;
+        
+        const isNewBest = !best || moves < best.moves;
+        if (isNewBest) {
+          localStorage.setItem(storageKey, JSON.stringify({
+            moves,
+            tier,
+            timestamp: Date.now()
+          }));
+        }
+
+        set({ 
+          status: 'gameOver', 
+          winner: state.players[0],
+          soloResult: {
+            tier,
+            isNewBest,
+            bestMoves: best?.moves
+          }
+        });
+      }
+      return;
+    }
+
     // Sort players by score descending
     const sortedPlayers = [...state.players].sort((a, b) => b.score - a.score);
     const leader = sortedPlayers[0];

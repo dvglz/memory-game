@@ -1,10 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/useGameStore';
 import { THEMES, GAME_CONFIG } from '../config/gameConfig';
-import { RefreshCw, Target, Flame, MousePointer2, Clock, Bomb, X } from 'lucide-react';
+import { RefreshCw, Target, Flame, MousePointer2, Clock, Bomb, X, Trophy, Medal } from 'lucide-react';
 
 export const VictoryOverlay = () => {
-  const { status, winner, players, initGame, mode, theme, isTiebreaker, debugShowResults, toggleDebugResults, jokerEnabled } = useGameStore();
+  const { status, winner, players, initGame, mode, theme, isTiebreaker, debugShowResults, toggleDebugResults, jokerEnabled, soloResult } = useGameStore();
 
   const isVisible = ['victoryLocked', 'tiebreaker', 'gameOver'].includes(status) || debugShowResults;
   const themeName = THEMES[theme].name;
@@ -16,6 +16,11 @@ export const VictoryOverlay = () => {
   const isTie = status === 'tiebreaker';
 
   const getVictoryTitle = () => {
+    if (mode === 'solo') {
+      if (soloResult?.tier === 'gold') return "GOLD MEDAL!";
+      if (soloResult?.tier === 'silver') return "SILVER MEDAL!";
+      return "FINISHED!";
+    }
     if (isTie) return "IT'S A TIE!";
     if (isTiebreaker) return "OVERTIME WIN!";
     if (isFlawless) return "FLAWLESS!";
@@ -117,54 +122,92 @@ export const VictoryOverlay = () => {
         </motion.h1>
 
         {/* Subtitle */}
-        {isTie && (
+        {mode === 'solo' ? (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-lg md:text-xl font-black italic uppercase text-zinc-500 tracking-tight mb-8"
+            className="flex flex-col items-center gap-2 mb-8"
           >
-            HEADING TO OVERTIME
-          </motion.div>
-        )}
-
-        {!isTie && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-lg md:text-xl font-black italic uppercase text-nba-orange tracking-tight mb-8"
-          >
-            {winnerData?.name} WINS
-          </motion.div>
-        )}
-
-        {/* Scores */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          className={`flex items-center justify-center gap-6 md:gap-10 mb-8`}
-        >
-          {players.map((p, idx) => {
-            const isWinner = winnerData?.id === p.id;
-            return (
-              <div key={p.id} className="flex items-center gap-6 md:gap-10">
-                <div className="text-center">
-                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-2">{p.name}</div>
-                  <div className={`text-7xl md:text-9xl font-black italic tracking-tighter leading-none transition-colors ${
-                    isWinner ? 'text-nba-orange' : 'text-white/40'
-                  }`}>
-                    {p.score}
-                  </div>
-                </div>
-                {idx < players.length - 1 && (
-                  <div className="text-4xl md:text-6xl font-black text-zinc-800 italic mt-6 md:mt-10">/</div>
-                )}
+            <div className="text-lg md:text-xl font-black italic uppercase text-nba-orange tracking-tight">
+              {players[0].stats.totalMoves} MOVES
+            </div>
+            {soloResult?.isNewBest && (
+              <div className="bg-yellow-500 text-black px-3 py-0.5 rounded text-[10px] font-black uppercase tracking-widest">
+                NEW PERSONAL BEST
               </div>
-            );
-          })}
-        </motion.div>
+            )}
+            {!soloResult?.isNewBest && soloResult?.bestMoves && (
+              <div className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+                BEST: {soloResult.bestMoves} MOVES
+              </div>
+            )}
+          </motion.div>
+        ) : (
+          <>
+            {isTie && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="text-lg md:text-xl font-black italic uppercase text-zinc-500 tracking-tight mb-8"
+              >
+                HEADING TO OVERTIME
+              </motion.div>
+            )}
+
+            {!isTie && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="text-lg md:text-xl font-black italic uppercase text-nba-orange tracking-tight mb-8"
+              >
+                {winnerData?.name} WINS
+              </motion.div>
+            )}
+          </>
+        )}
+
+        {/* Medal / Score Display */}
+        {mode === 'solo' ? (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: 'spring', delay: 0.3 }}
+            className="mb-8"
+          >
+            {soloResult?.tier === 'gold' && <Trophy className="w-32 h-32 text-yellow-500" />}
+            {soloResult?.tier === 'silver' && <Medal className="w-32 h-32 text-zinc-300" />}
+            {!soloResult?.tier && <Target className="w-32 h-32 text-zinc-700" />}
+          </motion.div>
+        ) : (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
+            className={`flex items-center justify-center gap-6 md:gap-10 mb-8`}
+          >
+            {players.map((p, idx) => {
+              const isWinner = winnerData?.id === p.id;
+              return (
+                <div key={p.id} className="flex items-center gap-6 md:gap-10">
+                  <div className="text-center">
+                    <div className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 mb-2">{p.name}</div>
+                    <div className={`text-7xl md:text-9xl font-black italic tracking-tighter leading-none transition-colors ${
+                      isWinner ? 'text-nba-orange' : 'text-white/40'
+                    }`}>
+                      {p.score}
+                    </div>
+                  </div>
+                  {idx < players.length - 1 && (
+                    <div className="text-4xl md:text-6xl font-black text-zinc-800 italic mt-6 md:mt-10">/</div>
+                  )}
+                </div>
+              );
+            })}
+          </motion.div>
+        )}
 
         {/* Stats Grid */}
         <motion.div 
@@ -173,47 +216,94 @@ export const VictoryOverlay = () => {
           animate="show"
           className="w-full max-w-lg mb-8"
         >
-          {(() => {
-            const getHighlighter = (statKey: keyof typeof players[0]['stats']) => {
-              const maxVal = Math.max(...players.map(p => p.stats[statKey]));
-              return maxVal > 0 ? players.map((p, i) => p.stats[statKey] === maxVal ? i : -1).filter(i => i !== -1) : [];
-            };
+          {mode === 'solo' ? (
+            // Solo mode: horizontal row layout
+            <motion.div 
+              variants={rowVariants}
+              className="flex items-center justify-center gap-8 md:gap-12"
+            >
+              {/* Moves */}
+              <div className="flex flex-col items-center">
+                <MousePointer2 className="w-5 h-5 text-zinc-500 mb-1" />
+                <span className="text-3xl md:text-4xl font-black italic text-white">
+                  {players[0]?.stats.totalMoves ?? 0}
+                </span>
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600">
+                  Moves
+                </span>
+              </div>
+              
+              {/* Streak */}
+              <div className="flex flex-col items-center">
+                <Flame className="w-5 h-5 text-zinc-500 mb-1" />
+                <span className="text-3xl md:text-4xl font-black italic text-white">
+                  {players[0]?.stats.maxStreak ?? 0}
+                </span>
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600">
+                  Streak
+                </span>
+              </div>
+              
+              {/* Time Spent */}
+              <div className="flex flex-col items-center">
+                <Clock className="w-5 h-5 text-zinc-500 mb-1" />
+                <span className="text-3xl md:text-4xl font-black italic text-white">
+                  {(() => {
+                    const secs = players[0]?.stats.timeSpent ?? 0;
+                    const mins = Math.floor(secs / 60);
+                    const s = secs % 60;
+                    return `${mins}:${s.toString().padStart(2, '0')}`;
+                  })()}
+                </span>
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600">
+                  Time
+                </span>
+              </div>
+            </motion.div>
+          ) : (
+            // 1v1 mode: original column layout
+            (() => {
+              const getHighlighter = (statKey: keyof typeof players[0]['stats']) => {
+                const maxVal = Math.max(...players.map(p => p.stats[statKey]));
+                return maxVal > 0 ? players.map((p, i) => p.stats[statKey] === maxVal ? i : -1).filter(i => i !== -1) : [];
+              };
 
-            return (
-              <>
-                <StatRow 
-                  label="Blind Shots" 
-                  icon={Target} 
-                  values={players.map(p => p.stats.blindShots)} 
-                  highlightIndices={getHighlighter('blindShots')}
-                />
-                <StatRow 
-                  label="Max Streak" 
-                  icon={Flame} 
-                  values={players.map(p => p.stats.maxStreak)}
-                  highlightIndices={getHighlighter('maxStreak')}
-                />
-                <StatRow 
-                  label="Total Moves" 
-                  icon={MousePointer2} 
-                  values={players.map(p => p.stats.totalMoves)}
-                />
-                <StatRow 
-                  label="Time Spent" 
-                  icon={Clock} 
-                  values={players.map(p => `${p.stats.timeSpent}s`)}
-                  highlightIndices={getTimeHighlighter()}
-                />
-                {jokerEnabled && (
+              return (
+                <>
                   <StatRow 
-                    label="Traps Hit" 
-                    icon={Bomb} 
-                    values={players.map(p => p.stats.trapHits)}
+                    label="Blind Shots" 
+                    icon={Target} 
+                    values={players.map(p => p.stats.blindShots)} 
+                    highlightIndices={getHighlighter('blindShots')}
                   />
-                )}
-              </>
-            );
-          })()}
+                  <StatRow 
+                    label="Max Streak" 
+                    icon={Flame} 
+                    values={players.map(p => p.stats.maxStreak)}
+                    highlightIndices={getHighlighter('maxStreak')}
+                  />
+                  <StatRow 
+                    label="Total Moves" 
+                    icon={MousePointer2} 
+                    values={players.map(p => p.stats.totalMoves)}
+                  />
+                  <StatRow 
+                    label="Time Spent" 
+                    icon={Clock} 
+                    values={players.map(p => `${p.stats.timeSpent}s`)}
+                    highlightIndices={getTimeHighlighter()}
+                  />
+                  {jokerEnabled && (
+                    <StatRow 
+                      label="Traps Hit" 
+                      icon={Bomb} 
+                      values={players.map(p => p.stats.trapHits)}
+                    />
+                  )}
+                </>
+              );
+            })()
+          )}
         </motion.div>
 
         {/* Action Button */}
@@ -240,7 +330,7 @@ export const VictoryOverlay = () => {
               onClick={() => initGame(mode)}
               className="bg-white text-black px-12 py-4 rounded-2xl font-black uppercase tracking-[0.15em] hover:bg-nba-red hover:text-white transition-all flex items-center gap-2 group"
             >
-              New Match <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
+              {mode === 'solo' ? 'Try Again' : 'New Match'} <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
             </button>
           )}
         </motion.div>

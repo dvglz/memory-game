@@ -1,12 +1,57 @@
 import { useGameStore } from '../store/useGameStore';
 import { motion, AnimatePresence } from 'framer-motion';
+import { GAME_CONFIG } from '../config/gameConfig';
 
 interface ScoreboardProps {
   isCompact?: boolean;
 }
 
 export const Scoreboard = ({ isCompact = false }: ScoreboardProps) => {
-  const { players, currentPlayerIndex, timer, timerConfig, status } = useGameStore();
+  const { players, currentPlayerIndex, timer, timerConfig, status, mode, matchedPairs, cards } = useGameStore();
+
+  if (mode === 'solo') {
+    const player = players[0];
+    if (!player) return null;
+
+    const moves = player.stats.totalMoves;
+    const totalPairs = cards.length / 2;
+    
+    let currentTier = 'No Medal';
+    let tierColor = 'text-zinc-500';
+    if (moves <= GAME_CONFIG.solo.goldThreshold) {
+      currentTier = 'Gold Pace';
+      tierColor = 'text-yellow-500';
+    } else if (moves <= GAME_CONFIG.solo.silverThreshold) {
+      currentTier = 'Silver Pace';
+      tierColor = 'text-zinc-300';
+    }
+
+    return (
+      <div className={`flex flex-col gap-4 md:gap-6 ${isCompact ? 'w-24 md:w-64' : 'w-48 lg:w-64'}`}>
+        <div className="bg-zinc-900 border-2 border-zinc-800 p-3 lg:p-6 rounded-xl shadow-lg">
+          <div className="text-[10px] md:text-xs font-black uppercase tracking-widest mb-1 text-white/70">
+            Moves
+          </div>
+          <div className="text-2xl lg:text-5xl font-black italic tracking-tighter text-white">
+            {moves}
+          </div>
+          
+          <div className={`mt-2 text-[10px] md:text-xs font-black uppercase italic ${tierColor}`}>
+            {currentTier}
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-zinc-800">
+            <div className="text-[10px] md:text-xs font-black uppercase tracking-widest mb-1 text-white/40">
+              Pairs
+            </div>
+            <div className="text-xl font-black italic text-white/70">
+              {matchedPairs} / {totalPairs}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`flex flex-col gap-4 md:gap-6 ${isCompact ? 'w-24 md:w-64' : 'w-48 lg:w-64'}`}>

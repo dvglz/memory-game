@@ -52,6 +52,10 @@ export const HomeScreen = ({ initialTheme }: HomeScreenProps) => {
     initGame('1v1', { playerCount: 2 });
   };
 
+  const handleStartSolo = () => {
+    initGame('solo');
+  };
+
   return (
     <div className="h-dvh w-full flex flex-col bg-[#0a0a0a] overflow-hidden">
       {/* Main Content */}
@@ -103,6 +107,15 @@ export const HomeScreen = ({ initialTheme }: HomeScreenProps) => {
 
         {/* Action Buttons */}
         <div className="flex gap-3 md:gap-4 w-full max-w-md px-4">
+          {/* Single Mode */}
+          <button
+            onClick={handleStartSolo}
+            className="group flex-1 flex flex-col items-center gap-2 md:gap-3 p-5 md:p-6 rounded-2xl bg-zinc-900 border-2 border-zinc-800 hover:border-zinc-600 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+          >
+            <User className="w-7 h-7 md:w-8 md:h-8 text-white group-hover:scale-110 transition-transform" />
+            <span className="text-sm md:text-base font-black uppercase tracking-tight text-white">Single</span>
+          </button>
+
           {/* Local 1v1 Mode */}
           <button
             onClick={handleStartVersus}
@@ -110,18 +123,6 @@ export const HomeScreen = ({ initialTheme }: HomeScreenProps) => {
           >
             <Users className="w-7 h-7 md:w-8 md:h-8 text-white group-hover:scale-110 transition-transform" />
             <span className="text-sm md:text-base font-black uppercase tracking-tight text-white">Local 1v1</span>
-          </button>
-
-          {/* Single Mode - Disabled */}
-          <button
-            disabled
-            className="relative flex-1 flex flex-col items-center gap-2 md:gap-3 p-5 md:p-6 rounded-2xl bg-zinc-900 border-2 border-zinc-800 cursor-not-allowed opacity-60"
-          >
-            <User className="w-7 h-7 md:w-8 md:h-8 text-zinc-500" />
-            <span className="text-sm md:text-base font-black uppercase tracking-tight text-zinc-500">Single</span>
-            <span className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-zinc-700 text-[10px] font-bold uppercase text-zinc-300">
-              Soon
-            </span>
           </button>
         </div>
       </main>

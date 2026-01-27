@@ -1,5 +1,5 @@
 import { useGameStore } from '../store/useGameStore';
-import { THEMES } from '../config/gameConfig';
+import { THEMES, GAME_CONFIG } from '../config/gameConfig';
 import { ChevronDown } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { ThemeModal } from './ThemeModal';
@@ -73,7 +73,12 @@ export const TopBar = () => {
     status,
     players,
     resetToIdle,
-    timerConfig
+    timerConfig,
+    mode,
+    cards,
+    matchedPairs,
+    jokerEnabled,
+    soloElapsedTime
   } = useGameStore();
   
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
@@ -84,6 +89,9 @@ export const TopBar = () => {
   const p2 = players[1];
   const isPlaying = status === 'playing';
   const timerProgress = timer / timerConfig;
+  const isSolo = mode === 'solo';
+
+  const totalPairs = (cards.length - (jokerEnabled ? 2 : 0)) / 2;
 
   return (
     <>
@@ -107,60 +115,132 @@ export const TopBar = () => {
           )}
         </button>
 
-        {/* Center: P1 Score | Timer Circle | P2 Score */}
+        {/* Center Section */}
         <div className="flex items-center gap-2 md:gap-6 relative z-10">
-          {/* Player 1 Area - right aligned */}
-          <div className="flex items-center gap-2 md:gap-4">
-            <div className="flex flex-col items-end min-w-[60px] md:min-w-[100px]">
-              <span className={`text-[10px] md:text-xs font-black italic uppercase tracking-wider ${
-                isPlaying && currentPlayerIndex === 0 ? 'text-nba-red' : 'text-zinc-500'
-              }`}>
-                {isMobile ? 'P1' : 'PLAYER 1'}
-              </span>
-              <AnimatedScore score={p1?.score ?? 0} />
-            </div>
-            {/* Turn Arrow P1 */}
-            <div className="w-4 md:w-6 flex justify-center">
-              {isPlaying && currentPlayerIndex === 0 && (
-                <span className="text-nba-red text-lg md:text-2xl animate-pulse">◀</span>
-              )}
-            </div>
-          </div>
+          {isSolo ? (
+            (() => {
+              const moves = p1?.stats.totalMoves ?? 0;
+              const remainingPairs = totalPairs - matchedPairs;
+              const goldBudget = GAME_CONFIG.solo.goldThreshold - moves;
+              const silverBudget = GAME_CONFIG.solo.silverThreshold - moves;
+              
+              // Format elapsed time as MM:SS
+              const minutes = Math.floor(soloElapsedTime / 60);
+              const seconds = soloElapsedTime % 60;
+              const timeDisplay = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+              
+              // Determine tier message
+              let tierMessage = '';
+              let tierColor = 'text-zinc-500';
+              if (goldBudget >= remainingPairs) {
+                tierMessage = `FINISH IN ${goldBudget} FOR GOLD`;
+                tierColor = 'text-yellow-400';
+              } else if (silverBudget >= remainingPairs) {
+                tierMessage = `FINISH IN ${silverBudget} FOR SILVER`;
+                tierColor = 'text-zinc-300';
+              } else {
+                tierMessage = 'NO MEDAL';
+                tierColor = 'text-zinc-600';
+              }
+              
+              return (
+                <div className="flex flex-col items-center gap-1">
+                  {/* Stats Row */}
+                  <div className="flex items-center gap-6 md:gap-12">
+                    {/* Pairs */}
+                    <div className="flex flex-col items-center">
+                      <span className="text-2xl md:text-4xl font-black italic text-white tabular-nums">
+                        {matchedPairs}/{totalPairs}
+                      </span>
+                      <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-white/50">
+                        Pairs
+                      </span>
+                    </div>
+                    
+                    {/* Moves */}
+                    <div className="flex flex-col items-center">
+                      <span className="text-2xl md:text-4xl font-black italic text-white tabular-nums">
+                        {moves}
+                      </span>
+                      <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-white/50">
+                        Moves
+                      </span>
+                    </div>
+                    
+                    {/* Time Spent */}
+                    <div className="flex flex-col items-center">
+                      <span className="text-2xl md:text-4xl font-black italic text-white tabular-nums">
+                        {timeDisplay}
+                      </span>
+                      <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-white/50">
+                        Spent
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Tier Message */}
+                  <div className={`text-[10px] md:text-sm font-black uppercase italic tracking-wider ${tierColor}`}>
+                    {tierMessage}
+                  </div>
+                </div>
+              );
+            })()
+          ) : (
+            <div className="flex items-center gap-2 md:gap-6 relative">
+              {/* Player 1 Area - right aligned */}
+              <div className="flex items-center gap-2 md:gap-4">
+                <div className="flex flex-col items-end min-w-[60px] md:min-w-[100px]">
+                  <span className={`text-[10px] md:text-xs font-black italic uppercase tracking-wider ${
+                    isPlaying && currentPlayerIndex === 0 ? 'text-nba-red' : 'text-zinc-500'
+                  }`}>
+                    {isMobile ? 'P1' : 'PLAYER 1'}
+                  </span>
+                  <AnimatedScore score={p1?.score ?? 0} />
+                </div>
+                {/* Turn Arrow P1 */}
+                <div className="w-4 md:w-6 flex justify-center">
+                  {isPlaying && currentPlayerIndex === 0 && (
+                    <span className="text-nba-red text-lg md:text-2xl animate-pulse">◀</span>
+                  )}
+                </div>
+              </div>
 
-          {/* Circular Timer */}
-          <div className="relative flex items-center justify-center" style={{ width: isMobile ? 60 : 80, height: isMobile ? 60 : 80 }}>
-            <CircularTimer progress={timerProgress} size={isMobile ? 60 : 80} isReset={timer === timerConfig} />
-            <div className="flex flex-col items-center justify-center z-10">
-              <span 
-                className={`text-base md:text-[1.5rem] font-black italic tracking-tighter tabular-nums leading-none ${
-                  timer <= 5 ? 'text-nba-red animate-pulse' : 'text-white'
-                }`}
-              >
-                :{timer.toString().padStart(2, '0')}
-              </span>
-              <span className="text-[8px] md:text-[10px] text-zinc-500 font-medium uppercase tracking-wider">
-                time left
-              </span>
-            </div>
-          </div>
+              {/* Circular Timer */}
+              <div className="relative flex items-center justify-center" style={{ width: isMobile ? 60 : 80, height: isMobile ? 60 : 80 }}>
+                <CircularTimer progress={timerProgress} size={isMobile ? 60 : 80} isReset={timer === timerConfig} />
+                <div className="flex flex-col items-center justify-center z-10">
+                  <span 
+                    className={`text-base md:text-[1.5rem] font-black italic tracking-tighter tabular-nums leading-none ${
+                      timer <= 5 ? 'text-nba-red animate-pulse' : 'text-white'
+                    }`}
+                  >
+                    :{timer.toString().padStart(2, '0')}
+                  </span>
+                  <span className="text-[8px] md:text-[10px] text-zinc-500 font-medium uppercase tracking-wider">
+                    time left
+                  </span>
+                </div>
+              </div>
 
-          {/* Player 2 Area - left aligned */}
-          <div className="flex items-center gap-2 md:gap-4">
-            {/* Turn Arrow P2 */}
-            <div className="w-4 md:w-6 flex justify-center">
-              {isPlaying && currentPlayerIndex === 1 && (
-                <span className="text-nba-red text-lg md:text-2xl animate-pulse">▶</span>
-              )}
+              {/* Player 2 Area - left aligned */}
+              <div className="flex items-center gap-2 md:gap-4">
+                {/* Turn Arrow P2 */}
+                <div className="w-4 md:w-6 flex justify-center">
+                  {isPlaying && currentPlayerIndex === 1 && (
+                    <span className="text-nba-red text-lg md:text-2xl animate-pulse">▶</span>
+                  )}
+                </div>
+                <div className="flex flex-col items-start min-w-[60px] md:min-w-[100px]">
+                  <span className={`text-[10px] md:text-xs font-black italic uppercase tracking-wider ${
+                    isPlaying && currentPlayerIndex === 1 ? 'text-nba-red' : 'text-zinc-500'
+                  }`}>
+                    {isMobile ? 'P2' : 'PLAYER 2'}
+                  </span>
+                  <AnimatedScore score={p2?.score ?? 0} />
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col items-start min-w-[60px] md:min-w-[100px]">
-              <span className={`text-[10px] md:text-xs font-black italic uppercase tracking-wider ${
-                isPlaying && currentPlayerIndex === 1 ? 'text-nba-red' : 'text-zinc-500'
-              }`}>
-                {isMobile ? 'P2' : 'PLAYER 2'}
-              </span>
-              <AnimatedScore score={p2?.score ?? 0} />
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Right: Theme Selector */}

@@ -23,10 +23,12 @@ function GameContainer() {
   const { 
     status, 
     decrementTimer, 
+    incrementSoloTime,
     isPaused, 
     isPeeking, 
     theme,
-    setTheme
+    setTheme,
+    mode
   } = useGameStore();
 
   // Fix mobile viewport offset when returning to tab
@@ -65,11 +67,15 @@ function GameContainer() {
     let interval: number;
     if (status === 'playing' && !isPaused && !isPeeking) {
       interval = setInterval(() => {
-        decrementTimer();
+        if (mode === 'solo') {
+          incrementSoloTime();
+        } else {
+          decrementTimer();
+        }
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [status, isPaused, isPeeking, decrementTimer]);
+  }, [status, isPaused, isPeeking, decrementTimer, incrementSoloTime, mode]);
 
   if (status === 'idle') {
     return (
