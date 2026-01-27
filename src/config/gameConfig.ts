@@ -54,9 +54,9 @@ export const GAME_CONFIG = {
   peekDuration: 5000, // ms
   jokerEnabled: false,
   solo: {
-    goldThreshold: 20,
-    silverThreshold: 30,
-    peekDuration: 2000,
+    goldThreshold: 15,
+    silverThreshold: 25,
+    peekDuration: 3000,
   },
   assets: {
     back: '/assets/misc/miss-match-logo_min.svg',
