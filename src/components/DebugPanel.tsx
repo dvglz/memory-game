@@ -20,7 +20,8 @@ export const DebugPanel = () => {
     setJokerEnabled,
     setTimerConfig, 
     setFlipDelayConfig,
-    initGame
+    initGame,
+    debugEndGame
   } = useGameStore();
 
   const isBronMode = theme === 'bron-mode';
@@ -194,6 +195,14 @@ export const DebugPanel = () => {
             >
               <RefreshCw className="w-3 h-3" />
               Restart Game
+            </button>
+            <button
+              onClick={debugEndGame}
+              disabled={status === 'idle' || status === 'gameOver'}
+              className="flex items-center justify-center gap-2 px-3 py-2 bg-nba-red/10 hover:bg-nba-red/20 text-nba-red border border-nba-red/20 rounded-lg text-xs font-black uppercase italic transition-all disabled:opacity-30"
+            >
+              <Crown className="w-3 h-3" />
+              Force End Game
             </button>
           </div>
         </div>

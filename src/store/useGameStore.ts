@@ -34,6 +34,7 @@ interface GameStore extends GameState {
   setJokerEnabled: (enabled: boolean) => void;
   resetToIdle: () => void;
   debugTriggerEffect: (type: 'blind' | 'streak') => void;
+  debugEndGame: () => void;
 }
 
 const shuffle = <T,>(array: T[]): T[] => {
@@ -561,5 +562,77 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
     
     set({ players: newPlayers });
+  },
+
+  debugEndGame: () => {
+    const state = get();
+    if (state.status === 'idle') return;
+
+    const jokerCount = state.cards.filter(c => c.isJoker).length;
+    const totalPairs = (state.cards.length - jokerCount) / 2;
+    
+    const newPlayers = [...state.players];
+    
+    if (state.mode === 'solo') {
+      const player = newPlayers[0];
+      // Randomize moves for solo
+      const moves = Math.floor(Math.random() * 30) + 10; // 10-40 moves
+      player.stats.totalMoves = moves;
+      player.stats.timeSpent = Math.floor(Math.random() * 60) + 30; // 30-90 seconds
+      
+      let tier: SoloTier = null;
+      if (moves <= GAME_CONFIG.solo.goldThreshold) tier = 'gold';
+      else if (moves <= GAME_CONFIG.solo.silverThreshold) tier = 'silver';
+
+      const storageKey = `solo_best_${state.theme}`;
+      const saved = localStorage.getItem(storageKey);
+      const best: SoloBest | null = saved ? JSON.parse(saved) : null;
+      const isNewBest = !best || moves < best.moves;
+
+      set({ 
+        status: 'gameOver', 
+        winner: player,
+        players: newPlayers,
+        matchedPairs: totalPairs,
+        cards: state.cards.map(c => ({ ...c, isMatched: true, isFlipped: true })),
+        soloResult: {
+          tier,
+          isNewBest,
+          bestMoves: best?.moves
+        }
+      });
+    } else {
+      // 1v1 or multiplayer
+      // Distribute pairs randomly
+      let remainingPairs = totalPairs;
+      newPlayers.forEach((p, i) => {
+        const take = i === newPlayers.length - 1 ? remainingPairs : Math.floor(Math.random() * (remainingPairs + 1));
+        p.score = take;
+        p.stats.totalMoves = take + Math.floor(Math.random() * 10);
+        p.stats.timeSpent = Math.floor(Math.random() * 100);
+        remainingPairs -= take;
+      });
+
+      // Sort to find winner
+      const sorted = [...newPlayers].sort((a, b) => b.score - a.score);
+      const isTie = sorted.length > 1 && sorted[0].score === sorted[1].score;
+
+      if (isTie) {
+        set({ 
+          status: 'tiebreaker',
+          players: newPlayers,
+          matchedPairs: totalPairs,
+          cards: state.cards.map(c => ({ ...c, isMatched: true, isFlipped: true }))
+        });
+      } else {
+        set({ 
+          status: 'gameOver', 
+          winner: sorted[0],
+          players: newPlayers,
+          matchedPairs: totalPairs,
+          cards: state.cards.map(c => ({ ...c, isMatched: true, isFlipped: true }))
+        });
+      }
+    }
   },
 }));
